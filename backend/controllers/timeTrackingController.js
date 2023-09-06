@@ -132,7 +132,7 @@ export const checkOut = tryCatchWrapper(async (req, res) => {
     userId
   );
 
-  // Check if the user has previously checked in
+  // Checks if the user has previously checked in
   if (!lastTimeTrackingEntry || !lastTimeTrackingEntry.checkIn) {
     return res.status(HttpStatus.BAD_REQUEST).json({
       success: false,
@@ -140,7 +140,7 @@ export const checkOut = tryCatchWrapper(async (req, res) => {
     });
   }
 
-  // Update the most recent Time Tracking entry with check-out time and calculate duration
+  // Updates the most recent Time Tracking entry with check-out time and calculate duration
   lastTimeTrackingEntry.checkOut = new Date();
   lastTimeTrackingEntry.duration =
     (lastTimeTrackingEntry.checkOut - lastTimeTrackingEntry.checkIn) / 1000; // Duration in seconds
