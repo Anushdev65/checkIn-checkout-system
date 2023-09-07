@@ -15,7 +15,13 @@ export const detailAllTimeTrackerService = async ({
   limit = "",
   skip = "",
   select = "",
-}) => TimeTracker.find(find).sort(sort).limit(limit).skip(skip).select(select);
+}) =>
+  TimeTracker.find(find)
+    .sort(sort)
+    .limit(limit)
+    .skip(skip)
+    .select(select)
+    .populate("user");
 
 // Delete a specific time tracker entry by ID
 export const deleteSpecificTimeTrackerService = async ({ id }) =>
@@ -23,7 +29,7 @@ export const deleteSpecificTimeTrackerService = async ({ id }) =>
 
 // Retrieve a specific time tracker entry by ID
 export const detailSpecificTimeTrackerService = async ({ id }) =>
-  TimeTracker.findById(id);
+  TimeTracker.findById(id).populate("user");
 
 // Update a specific time tracker entry by ID with new data
 export const editSpecificTimeTrackerService = async ({ id, body }) =>
@@ -32,26 +38,33 @@ export const editSpecificTimeTrackerService = async ({ id, body }) =>
     runValidators: true,
   });
 
-export const getLastCheckIn = async (userId) => {
-  // Find the most recent check-in for the user
-  const lastCheckInEntry = await TimeTracker.findOne({
-    user: userId,
-    checkIn: { $ne: null }, // Ensure there's a check-in timestamp
-  })
-    .sort({ checkIn: -1 }) // Sort in descending order to get the most recent check-in
-    .exec();
-
-  return lastCheckInEntry;
-};
-
 export const getLastTimeTracking = async (userId) => {
   // Find the most recent Time Tracking entry for the user
   const lastTimeTrackingEntry = await TimeTracker.findOne({
     user: userId,
     checkIn: { $ne: null }, // Ensure there's a check-in timestamp
+    active: true, // Check for active entries
   })
     .sort({ checkIn: -1 }) // Sort in descending order to get the most recent entry
     .exec();
 
   return lastTimeTrackingEntry;
 };
+
+export const getLastPausedTimeTracking = async (userId) => {
+  // Find the most recent Time Tracking entry for the user with an active status of true
+  const lastPausedTimeTrackingEntry = await TimeTracker.findOne({
+    user: userId,
+    active: false, // Check for paused entries
+  })
+    .sort({ updatedAt: -1 }) // Sort in descending order of the "updatedAt" field to get the most recent entry
+    .exec();
+
+  return lastPausedTimeTrackingEntry;
+};
+
+
+
+
+
+

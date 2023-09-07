@@ -3,8 +3,8 @@ import { Schema } from "mongoose";
 let timeTrackingSchema = Schema(
   {
     user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: Schema.Types.ObjectId,
+      ref: "Auth",
       required: true,
     },
     checkIn: {
@@ -17,9 +17,23 @@ let timeTrackingSchema = Schema(
     duration: {
       type: Number,
     },
+    pauseTimer: {
+      type: Date,
+    },
+    pausedDuration: {
+      type: Number,
+      default: 0,
+    },
+    resume: {
+      type: Date,
+    },
+    active: {
+      type: Boolean,
+      default: false,
+    },
     note: {
-      type: String
-    }
+      type: String,
+    },
   },
   { timestamp: true }
 );

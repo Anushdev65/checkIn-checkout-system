@@ -34,7 +34,7 @@ export const baseUrl = process.env.BASE_URL || "http://localhost:8000";
 // Sender's email address
 export const fromEmail = process.env.FROM_EMAIL;
 
-// export const fromPassword = process.env.FROM_PASSWORD;
+export const fromPassword = process.env.FROM_PASSWORD;
 
 // Email server host (SMTP server)
 export const emailHost = process.env.EMAIL_HOST;

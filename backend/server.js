@@ -4,6 +4,7 @@ import { apiVersion, port } from "./config/config.js";
 import { connectDb } from "./connectdb/db.js";
 import { config } from "dotenv";
 import cors from "cors";
+import apiRouter from "./routes/index.js";
 // import { apiVersion, port, staticFolder }
 
 let expressApp = express();
@@ -11,6 +12,8 @@ config();
 
 expressApp.use(cors());
 expressApp.use(json());
+
+expressApp.use(`${apiVersion}`, apiRouter)
 
 expressApp.use(errorHandler);
 
