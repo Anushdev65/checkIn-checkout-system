@@ -22,6 +22,7 @@ const OurRoutes = [
   },
 ];
 
+// Map defined routes to their respective routers
 OurRoutes.forEach((route) => {
   apiRouter.use(route.path, route.router);
 });

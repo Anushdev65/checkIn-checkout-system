@@ -1,6 +1,6 @@
 // Import the `config` function from the dotenv library to load environment variables from the .env file
 import { config } from "dotenv";
-config({ path: "../.env" });
+config();
 
 // Define and export configuration variables derived from environment variables
 
