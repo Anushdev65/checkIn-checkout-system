@@ -1,3 +1,19 @@
-.content {
-  margin-left: 30rem;
+.content-wrapper {
+  display: flex;
+  flex-direction: row;
 }
+
+.content {
+  width: 70vw;
+  margin-top: 2rem;
+}
+
+.contents {
+  display: flex;
+  margin-top: 3rem;
+  margin-left: 57rem;
+  width: 10vw;
+  height: 50px;
+}
+
+
