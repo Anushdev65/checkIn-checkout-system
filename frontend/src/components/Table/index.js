@@ -11,12 +11,12 @@ import {
   useAddTimeTrackerMutation,
   useEditTimeTrackerMutation,
   useDeleteTimeTrackerMutation,
-  useUserCheckinMutation,
-  useUserCheckoutMutation,
+  useUserCheckInMutation,
+  useUserCheckOutMutation,
   useDurationMutation,
   useResumeTimerMutation,
   usePauseTimerMutation,
-} from "../../services/api/timeTracking/timeTracking";
+} from "../../services/api/timeTracking";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import * as React from "react";
@@ -50,42 +50,73 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
+// Caculates the duration between checkIn and checkOut using day
+function calculateDuration(checkIn, checkOut) {
+  const checkInTime = dayjs(checkIn);
+  const checkOutTime = dayjs(checkOut);
+  const durationMinutes = checkOutTime.diff(checkInTime, "minutes");
+  return durationMinutes;
+}
+
 export default function CustomizedTables() {
   const [addRow, setAddRow] = useState({
     checkIn: "",
     checkOut: "",
     pauseTimer: "",
     resumeTimer: "",
+    pausedDuration: "",
     duration: "",
     notes: "",
   });
 
+  const [checkInMutation, { data, isSuccess, error, isLoading }] =
+    useUserCheckInMutation();
+
+  const [isCheckInSuccess, setIsCheckInSuccess] = useState(false);
+  // handleCheckIn function to implement logic for checkIn button as well as fetching the api inside it.
+  const handleCheckIn = async () => {
+    try {
+      const currentTime = dayjs();
+      const requestBody = {};
+      setAddRow({
+        ...addRow,
+        checkIn: currentTime.format(" HH:mm:ss A"),
+      });
+
+      const response = await checkInMutation({ body: requestBody });
+
+      if (response.error) {
+        console.error("Check-In Error", response.error);
+      } else {
+        console.log("Check-In successful", response.data);
+        // Handle successful check-in here
+      }
+    } catch (error) {
+      console.error("Check-In Error", error);
+    }
+  };
+
   const handleAction = (action) => {
     const currentTime = dayjs();
     switch (action) {
-      case "checkIn":
-        setAddRow({
-          ...addRow,
-          checkIn: currentTime.format(" HH:mm:ss"),
-        });
-        break;
       case "checkOut":
         if (addRow.checkIn) {
+          const checkInTime = dayjs(addRow.checkIn);
+          const checkOutTime = currentTime;
+          const durationMinutes = checkOutTime.diff(checkInTime, "minute");
+
           setAddRow({
             ...addRow,
-            checkOut: currentTime.format("YYYY-MM-DD HH:mm:ss"),
+            checkOut: currentTime.format("HH:mm:ss A"),
+            duration: durationMinutes,
           });
-          const checkInTime = dayjs(addRow.checkIn);
-          const checkOutTime = dayjs(addRow.checkOut);
-          const durationMinutes = checkOutTime.diff(checkInTime, "minutes");
-          setAddRow({ ...addRow, duration: durationMinutes });
         }
         break;
       case "pauseTimer":
         if (addRow.checkIn && !addRow.pauseTimer) {
           setAddRow({
             ...addRow,
-            pauseTimer: currentTime.format("YYYY-MM-DD HH:mm:ss"),
+            pauseTimer: currentTime.format("HH:mm:ss A"),
           });
         }
         break;
@@ -94,13 +125,14 @@ export default function CustomizedTables() {
           const pauseTime = dayjs(addRow.pauseTimer);
           const resumeTime = currentTime;
           const pauseDurationMinutes = resumeTime.diff(pauseTime, "minutes");
-          setAddRow({
-            ...addRow,
-            pauseDuration: addRow.pauseDuration
-              ? addRow.pauseDuration + pauseDurationMinutes
+
+          setAddRow((prevRow) => ({
+            ...prevRow,
+            pausedDuration: prevRow.pausedDuration
+              ? prevRow.pausedDuration + pauseDurationMinutes
               : pauseDurationMinutes,
             pauseTimer: null,
-          });
+          }));
         }
         break;
       default:
@@ -113,7 +145,12 @@ export default function CustomizedTables() {
       <Table sx={{ minWidth: 700 }} aria-label="custom-table">
         <TableHead>
           <TableRow>
-            <StyledTableCell align="center" className="custom-table-cell">
+            <StyledTableCell
+              align="center"
+              className={`custom-table-cell ${
+                isCheckInSuccess ? "green-background" : ""
+              }`}
+            >
               Check-In
             </StyledTableCell>
             <StyledTableCell align="center" className="custom-table-cell">
@@ -127,7 +164,10 @@ export default function CustomizedTables() {
               Resume Timer
             </StyledTableCell>
             <StyledTableCell align="center" className="custom-table-cell">
-              Duration
+              Paused Duration
+            </StyledTableCell>
+            <StyledTableCell align="center" className="custom-table-cell">
+              Worked Hours
             </StyledTableCell>
             <StyledTableCell align="center" className="custom-table-cell">
               Notes
@@ -143,13 +183,14 @@ export default function CustomizedTables() {
               {addRow.checkIn ? (
                 addRow.checkIn
               ) : (
-                <Button
-                  variant="outlined"
-                  onClick={() => handleAction("checkIn")}
-                >
+                <Button variant="outlined" onClick={handleCheckIn}>
                   Check-In
                 </Button>
               )}
+              {isLoading && <p> Loading...</p>}
+              {isSuccess && <p> Check-In Successful</p>}
+              {error && <p>Error: {error.message}</p>}
+              {data && <p> Data: {JSON.stringify(data)}</p>}
             </StyledTableCell>
             <StyledTableCell align="center">
               {addRow.checkOut ? (
@@ -164,12 +205,16 @@ export default function CustomizedTables() {
               )}
             </StyledTableCell>
             <StyledTableCell align="center">
-              <Button
-                variant="outlined"
-                onClick={() => handleAction("pauseTimer")}
-              >
-                Pause Timer
-              </Button>
+              {addRow.pauseTimer ? (
+                addRow.pauseTimer
+              ) : (
+                <Button
+                  variant="outlined"
+                  onClick={() => handleAction("pauseTimer")}
+                >
+                  Pause Timer
+                </Button>
+              )}
             </StyledTableCell>
             <StyledTableCell align="center">
               <Button
@@ -180,9 +225,12 @@ export default function CustomizedTables() {
               </Button>
             </StyledTableCell>
             <StyledTableCell align="center">
-              value={addRow.duration}
-              onChange=
-              {(e) => setAddRow({ ...addRow, duration: e.target.value })}
+              {addRow.pausedDuration}
+            </StyledTableCell>
+            <StyledTableCell align="center">
+              {addRow.checkIn && addRow.checkOut
+                ? calculateDuration(addRow.checkIn, addRow.checkOut)
+                : ""}
             </StyledTableCell>
             <StyledTableCell align="center">
               <TextareaAutosize
@@ -193,7 +241,14 @@ export default function CustomizedTables() {
                 }
               />
             </StyledTableCell>
-            <StyledTableCell align="center"></StyledTableCell>
+            <StyledTableCell align="center">
+              <Button
+                variant="outlined"
+                // onClick={() => handleAction("resumeTimer")}
+              >
+                Save
+              </Button>
+            </StyledTableCell>
           </StyledTableRow>
         </TableBody>
       </Table>

@@ -65,7 +65,7 @@ export const timeTrackerApi = createApi({
       },
     }),
 
-    userCheckin: builder.mutation({
+    userCheckIn: builder.mutation({
       query: ({ body }) => {
         return {
           url: `/time/tracker/checkin`,
@@ -74,7 +74,7 @@ export const timeTrackerApi = createApi({
         };
       },
     }),
-    userCheckout: builder.mutation({
+    userCheckOut: builder.mutation({
       query: ({ body }) => {
         return {
           url: `/time/tracker/checkout`,
@@ -110,6 +110,15 @@ export const timeTrackerApi = createApi({
         };
       },
     }),
+    pausedDuration: builder.mutation({
+      query: ({ body }) => {
+        return {
+          url: `/time/tracker/pause/duration`,
+          method: "POST",
+          body: body,
+        };
+      },
+    }),
   }),
 });
 
@@ -119,8 +128,8 @@ export const {
   useEditTimeTrackerMutation,
   useLazyDetailByIdTimeTrackerQuery,
   useDeleteTimeTrackerMutation,
-  useUserCheckinMutation,
-  useUserCheckoutMutation,
+  useUserCheckInMutation,
+  useUserCheckOutMutation,
   useDurationMutation,
   useResumeTimerMutation,
   usePauseTimerMutation,

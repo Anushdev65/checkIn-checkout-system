@@ -9,11 +9,15 @@ import { HttpStatus } from "../constant/constant.js";
 import successResponseData from "../helper/successResponseData.js";
 import { throwError } from "../utils/throwError.js";
 import tryCatchWrapper from "../middleware/tryCatchWrapper.js";
+import { comparePassword, hashPassword } from "../utils/hashFunction.js";
 import { authService, tokenService } from "../services/index.js";
+import getTokenExpiryTime from "../utils/getTokenExpiryTime.js";
 
-export const AddAuthUser = tryCatchWrapper(async (req, res) => {
+export const addAuthUser = tryCatchWrapper(async (req, res) => {
   const body = { ...req.body };
   let email = body.email;
+
+  let passHashedPassword = await hashPassword(req.body.password);
 
   let user = await authService.detailSpecificAuthUserByAny({ email });
 
@@ -23,10 +27,16 @@ export const AddAuthUser = tryCatchWrapper(async (req, res) => {
       statusCode: HttpStatus.UNAUTHORIZED,
     });
   } else {
-    const data = await authService.AddAuthUserService({ body });
+    const data = await authService.AddAuthUserService({
+      body: {
+        email: body.email,
+        password: passHashedPassword,
+      },
+    });
 
     let infoObj = { userId: data._id };
     let token = await generateToken(infoObj, secretKey);
+    console.log(user);
     console.log(token);
 
     let tokenData = {
@@ -44,5 +54,49 @@ export const AddAuthUser = tryCatchWrapper(async (req, res) => {
       data,
       token,
     });
+  }
+});
+
+export let loginUser = tryCatchWrapper(async (req, res) => {
+  let email = req.body.email;
+  let password = req.body.password;
+  let user = await authService.detailSpecificAuthUserByAny({ email });
+  if (user === null) {
+    throwError({
+      message: "Please enter valid email or password.",
+      statusCode: 401,
+    });
+  } else {
+    let isValidPassword = await comparePassword(password, user.password);
+    if (isValidPassword) {
+      let infoObj = { userId: user._id };
+      let token = await generateToken(infoObj, secretKey, expiryIn);
+
+      console.log(token);
+
+      let data = {
+        token: token,
+        userId: user._id,
+        type: tokenTypes.ACCESS,
+        expiration: getTokenExpiryTime(token).toLocaleString(),
+      };
+
+      await tokenService.createTokenService({ data });
+
+      successResponseData({
+        res,
+        message: "Login Successfully.",
+        statusCode: HttpStatus.OK,
+        data: {
+          token: token,
+          user: user,
+        },
+      });
+    } else {
+      throwError({
+        message: "Please enter valid email or password.",
+        statusCode: 401,
+      });
+    }
   }
 });

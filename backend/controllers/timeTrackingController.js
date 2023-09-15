@@ -120,6 +120,7 @@ export const checkIn = tryCatchWrapper(async (req, res) => {
     id: lastTimeTrackingEntry._id,
     body: lastTimeTrackingEntry,
   });
+  console.log(data);
 
   successResponseData({
     res,
@@ -214,7 +215,6 @@ export const duration = tryCatchWrapper(async (req, res) => {
   });
 });
 
-
 const pauseTimers = new Map();
 
 export const pauseTimer = tryCatchWrapper(async (req, res) => {
@@ -270,7 +270,7 @@ export const pauseTimer = tryCatchWrapper(async (req, res) => {
   // Create a pause timer and store its ID
   const pauseTimerId = setTimeout(() => {
     //Perform actions when pause duration is complete
-   
+
     lastTimeTrackingEntry.active = true; // Resume the tracking
     lastTimeTrackingEntry.checkIn = new Date();
 
@@ -344,4 +344,30 @@ export const resumeTimer = tryCatchWrapper(async (req, res) => {
     statusCode: HttpStatus.CREATED,
     data,
   });
+});
+
+export const calculatePausedDuration = tryCatchWrapper(async (req, res) => {
+  const { pauseTimer, resumeTimer, pausedDuration } = req.body;
+
+  if (!pauseTimer || !resumeTimer) {
+    return res
+      .status(400)
+      .json({ message: "Both pauseTimer and resumeTimer are required." });
+  }
+
+  const pauseTime = new Date(pauseTimer).getTime();
+  const resumeTime = new Date(resumeTimer).getTime();
+  const pauseDurationSeconds = (resumeTime - pauseTime) / 1000;
+  const updatedPausedDuration = pausedDuration - pauseDurationSeconds;
+
+  if (updatedPausedDuration < 0) {
+    return res
+      .status(400)
+      .json({ message: "Paused duration cannot be negative." });
+  }
+
+  // Update the pausedDuration in your database or data store with updatedPausedDuration
+  // ...
+
+  return res.status(200).json({ updatedPausedDuration });
 });

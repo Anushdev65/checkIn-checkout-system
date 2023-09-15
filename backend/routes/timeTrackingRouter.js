@@ -25,4 +25,5 @@ timeTrackerRouter
 
 timeTrackerRouter.route("/pause/timer").post(timeTrackingController.pauseTimer);
 
+timeTrackerRouter.route("/pause/duration").post(timeTrackingController.calculatePausedDuration)
 export default timeTrackerRouter;

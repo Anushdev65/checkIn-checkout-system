@@ -1,6 +1,5 @@
 .content-wrapper {
   display: flex;
-  flex-direction: row;
 }
 
 .content {
@@ -15,5 +14,3 @@
   width: 10vw;
   height: 50px;
 }
-
-
