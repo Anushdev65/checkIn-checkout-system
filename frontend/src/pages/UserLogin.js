@@ -46,28 +46,15 @@ export default function UserLogin() {
   } = useFormik({
     initialValues,
     onSubmit: (values) => {
+      console.log("Login form Values:", values);
       loginUser(values);
     },
   });
 
-  // const levelInfo = JSON.parse(getLevelInfo());
-  // const userInfo = JSON.parse(getUserInfo());
-  // useEffect(() => {
-  //   if (isSuccess) resetForm();
-  //   setLevelInfo((prevInfo) => ({
-  //     ...prevInfo,
-  //     token: data?.data.token,
-  //   }));
-  //   setUserInfo((prevInfo) => ({
-  //     ...prevInfo,
-  //     user: data?.data.user,
-  //   }));
-  //   if (data?.data.token) {
-  //     navigate("/");
-  //   }
-  // }, [resetForm, data, navigate, isSuccess]);
-
   React.useEffect(() => {
+    console.log("data:", data);
+    console.log("error:", error);
+    console.log("isSuccess:", isSuccess);
     if (isSuccess) resetForm();
     setLevelInfo({
       token: data?.data.token,

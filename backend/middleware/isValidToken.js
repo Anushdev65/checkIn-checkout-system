@@ -1,6 +1,6 @@
 import { secretKey } from "../config/config.js";
 import { HttpStatus } from "../constant/constant.js";
-import { TokenData } from "../schemasModle/model.js";
+import { TokenData } from "../schemasModel/model.js";
 import { authService } from "../services/index.js";
 import { verifyToken } from "../utils/token.js";
 import tryCatchWrapper from "./tryCatchWrapper.js";
@@ -20,7 +20,7 @@ export let isValidToken = tryCatchWrapper(async (req, res, next) => {
     let info = await verifyToken(token, secretKey);
 
     // Retrieve user data associated with the token's userId
-    let user = await authService.readSpecificAuthUserService({
+    let user = await authService.detailSpecificAuthUserService({
       id: info.userId,
     });
 

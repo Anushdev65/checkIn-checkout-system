@@ -10,8 +10,7 @@ export const listAllAuthUserService = async ({
   select = "",
 }) => Auth.find(find).sort(sort).limit(limit).skip(skip).select(select);
 
-export const detailSpecificAuthUserService = async ({ id }) =>
-  Auth.findById(id);
+export const detailSpecificAuthUserService = async (id) => Auth.findById(id);
 
 export const detailSpecificAuthUserByAny = async ({ email }) =>
   Auth.findOne({ email });

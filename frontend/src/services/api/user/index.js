@@ -36,6 +36,19 @@ export const userApi = createApi({
         };
       },
     }),
+
+    logoutUser: builder.mutation({
+      query: () => {
+        return {
+          url: `/auth/logout`,
+          method: "PATCH",
+        };
+      },
+    }),
   }),
 });
-export const { useCreateUserMutation, useLoginUserMutation } = userApi;
+export const {
+  useCreateUserMutation,
+  useLoginUserMutation,
+  useLogoutUserMutation,
+} = userApi;

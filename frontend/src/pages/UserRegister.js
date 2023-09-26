@@ -1,6 +1,7 @@
 import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
+import Typography from "@mui/material/Typography";
 import { useFormik } from "formik";
 import { useCreateUserMutation } from "../services/api/user";
 import MUILoading from "../components/MUITools/MUILoading";
@@ -62,6 +63,9 @@ export default function SignUp() {
               marginBottom: 8,
             }}
           >
+            <Typography component="h1" variant="h5">
+              Create your account
+            </Typography>
             <SigninForm
               handleBlur={handleBlur}
               touched={touched}

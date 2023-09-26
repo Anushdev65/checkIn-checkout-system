@@ -18,8 +18,7 @@ const loginSchema = Joi.object()
         )
       )
       .messages({
-        "string.pattern.base":
-          "Password must contain at least one lowercase letter, one uppercase letter, one digit, and one special character",
+        "string.pattern.base": "Incorrect password",
       }),
   })
   .unknown(false);

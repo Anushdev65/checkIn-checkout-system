@@ -5,6 +5,7 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import EnhancedEncryptionOutlinedIcon from "@mui/icons-material/EnhancedEncryptionOutlined";
 import FeedbackIcon from "@mui/icons-material/Feedback";
 import FoodBankOutlinedIcon from "@mui/icons-material/FoodBankOutlined";
+import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import MenuIcon from "@mui/icons-material/Menu";
 import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
@@ -25,6 +26,8 @@ import { styled, useTheme } from "@mui/material/styles";
 import * as React from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import "../../styles/navbar.css";
+import { useLogoutUserMutation } from "../../services/api/user";
+import { removeLevelInfo } from "../../localStorage/localStorage";
 const drawerWidth = 240;
 
 const navData = [
@@ -126,6 +129,8 @@ export default function MUINavbar() {
   // State for tracking the currently active navigation link
   const [activeLink, setActiveLink] = React.useState("");
 
+  const [logout, { data, isSucess }] = useLogoutUserMutation();
+
   // Location object to get the current pathname
   const location = useLocation();
 
@@ -167,6 +172,14 @@ export default function MUINavbar() {
 
   const handleDrawerClose = () => {
     setOpen(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    removeLevelInfo();
+    setTimeout(() => {
+      window.location.href = "/login";
+    });
   };
 
   const handleNavLinkClick = (name) => {
@@ -276,6 +289,30 @@ export default function MUINavbar() {
         </DrawerHeader>
         <Divider />
         <List>{renderList(navData)}</List>
+
+        <List>
+          <listItem disablePadding sx={{ display: "block" }}>
+            <ListItemButton
+              sx={{
+                minHeight: 48,
+                justifyContent: open ? "initial" : "center",
+                px: 2.5,
+              }}
+              onClick={handleLogout}
+            >
+              <ListItemIcon
+                sx={{
+                  minwidth: 0,
+                  mr: open ? 3 : "auto",
+                  justifyContent: "center",
+                }}
+              >
+                <LogoutOutlinedIcon />
+              </ListItemIcon>
+              <ListItemText primary="Logout" sx={{ opacity: open ? 1 : 0 }} />
+            </ListItemButton>
+          </listItem>
+        </List>
       </Drawer>
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
         <DrawerHeader />

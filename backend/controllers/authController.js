@@ -100,3 +100,15 @@ export let loginUser = tryCatchWrapper(async (req, res) => {
     }
   }
 });
+
+
+export let logoutUser = tryCatchWrapper(async (req, res) => {
+  await tokenService.deleteSpecificTokenService({ id: req.token.tokenId })
+
+  successResponseData({
+    res,
+    message: "Logout Successfully.",
+    statusCode: HttpStatus.OK
+  })
+  
+})

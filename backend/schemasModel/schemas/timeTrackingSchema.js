@@ -1,32 +1,33 @@
 import { Schema } from "mongoose";
-
+import pauseTimerSchema from "./pauseTimerSchema.js";
 let timeTrackingSchema = Schema(
   {
     user: {
       type: Schema.Types.ObjectId,
       ref: "Auth",
-      required: true,
     },
     checkIn: {
       type: Date,
-      required: true,
+      default: Date.now,
     },
     checkOut: {
       type: Date,
     },
     duration: {
       type: Number,
+      default: 0,
     },
-    pauseTimer: {
-      type: Date,
-    },
-    pausedDuration: {
+    pauseTimers: [pauseTimerSchema],
+    pausedCount: {
       type: Number,
       default: 0,
     },
-    resume: {
-      type: Date,
+    resumeTimer: [Date],
+
+    pausedDuration: {
+      type: Number,
     },
+
     active: {
       type: Boolean,
       default: false,

@@ -1,4 +1,3 @@
-// Import necessary modules and functions
 import { HttpStatus } from "../constant/constant.js";
 import successResponseData from "../helper/successResponseData.js";
 import tryCatchWrapper from "./tryCatchWrapper.js";

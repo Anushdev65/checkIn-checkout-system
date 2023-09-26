@@ -1,4 +1,5 @@
 import { TimeTracker } from "../schemasModel/model.js";
+import { ObjectId } from "mongoose";
 
 // Create a new time tracker entry
 export const addTimeTrackerService = async ({ body }) =>
@@ -38,14 +39,12 @@ export const editSpecificTimeTrackerService = async ({ id, body }) =>
     runValidators: true,
   });
 
-export const getLastTimeTracking = async (userId) => {
-  // Find the most recent Time Tracking entry for the user
-  const lastTimeTrackingEntry = await TimeTracker.findOne({
-    user: userId,
-    checkIn: { $ne: null }, // Ensure there's a check-in timestamp
-    active: true, // Check for active entries
-  })
-    .sort({ checkIn: -1 }) // Sort in descending order to get the most recent entry
+export const getLastTimeTracking = async (timeTrackingId) => {
+  // Find the most recent Time Tracking entry by its _id (ObjectId)
+  const lastTimeTrackingEntry = await TimeTracker.findById(
+    ObjectId(timeTrackingId)
+  )
+    .sort({ checkIn: -1 }) //Sort in desending order to get the most recent entry
     .exec();
 
   return lastTimeTrackingEntry;
@@ -62,9 +61,3 @@ export const getLastPausedTimeTracking = async (userId) => {
 
   return lastPausedTimeTrackingEntry;
 };
-
-
-
-
-
-

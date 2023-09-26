@@ -5,7 +5,7 @@ const tryCatchWrapper = (action) => async (req, res, next) => {
     await action(req, res, next);
   } catch (error) {
     // If an error occurs, pass it to the next middleware for error handling
-    next(error);
+    // next(error);
   }
 };
 

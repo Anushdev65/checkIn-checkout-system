@@ -22,3 +22,18 @@ export let generateToken = async (
     throw er;
   }
 };
+
+export let verifyToken = async (token = "", secretKey = "") => {
+  try {
+    let infoObj = jwt.verify(token, secretKey);
+    return infoObj;
+  } catch (error) {
+    let er = new Error(error.message);
+    error.statusCode = HttpStatus.UNAUTHORIZED;
+    throw er;
+  }
+
+  //   To  verify or to give infoObject
+  // First it checks weather the token is made from secretkey
+  // Then it checks expiry date
+};

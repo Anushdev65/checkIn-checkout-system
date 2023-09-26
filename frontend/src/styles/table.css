@@ -11,3 +11,10 @@
 .green-background {
   background-color: green;
 }
+
+.check-in-time {
+  font-size: 1.1em;
+  font-weight: 400;
+  color: #007bff;
+  /* margin-left: 10px; */
+}

@@ -10,11 +10,12 @@ export const timeTrackerApi = createApi({
       const levelInfo = getLevelInfo();
       const token = levelInfo && levelInfo.token ? levelInfo.token : "";
       if (token) {
-        headers.set("authorization", `Bearer ${token}`);
+        headers.set(`Bearer ${token}`);
       }
       return headers;
     },
   }),
+  tagTypes: ["CheckIn"],
 
   // Fetching API from timeTracker router
   endpoints: (builder) => ({
@@ -73,6 +74,7 @@ export const timeTrackerApi = createApi({
           body: body,
         };
       },
+      invalidatesTags: ["CheckIn"],
     }),
     userCheckOut: builder.mutation({
       query: ({ body }) => {
@@ -82,6 +84,7 @@ export const timeTrackerApi = createApi({
           body: body,
         };
       },
+      invalidatesTags: ["CheckIn"],
     }),
     duration: builder.mutation({
       query: ({ body }) => {
@@ -119,6 +122,15 @@ export const timeTrackerApi = createApi({
         };
       },
     }),
+    saveCheckInTime: builder.query({
+      query: (id) => {
+        return {
+          url: `/time/tracker/save/checkin/${id}`,
+          method: "GET",
+        };
+      },
+      providesTags: ["CheckIn"],
+    }),
   }),
 });
 
@@ -133,4 +145,6 @@ export const {
   useDurationMutation,
   useResumeTimerMutation,
   usePauseTimerMutation,
+  usePausedDurationMutation,
+  useSaveCheckInTimeQuery,
 } = timeTrackerApi;

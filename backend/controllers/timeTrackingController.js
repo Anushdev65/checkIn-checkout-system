@@ -2,8 +2,10 @@
 import { HttpStatus } from "../constant/constant.js";
 import successResponseData from "../helper/successResponseData.js";
 import tryCatchWrapper from "../middleware/tryCatchWrapper.js";
-import { timeTrackerService } from "../services/index.js";
-
+import { authService, timeTrackerService } from "../services/index.js";
+import asyncHandler from "express-async-handler";
+import { getLastTimeTracking } from "../services/timeTrackingServices.js";
+import dayjs from "dayjs";
 // Controller function to add a new time tracker entry
 export const addTimeTracker = tryCatchWrapper(async (req, res) => {
   // Extract request body
@@ -89,12 +91,34 @@ export const deleteSpecificTimeTracker = tryCatchWrapper(async (req, res) => {
 });
 
 export const checkIn = tryCatchWrapper(async (req, res) => {
-  let userId = req.user.id;
+  // Get the user ID from the request.
+  let user = req.body.id;
+  // // Fetch the user's data, including the user ID
+  // console.log("User ID:", user);
+  const userData = await authService.detailSpecificAuthUserService(user);
+
+  console.log(userData);
+  if (!userData) {
+    return res.status(404).json({ message: "User not found" });
+  }
 
   // Check if the user has already checked in on the current day
   let lastTimeTrackingEntry = await timeTrackerService.getLastTimeTracking(
-    userId
+    user
   );
+
+  console.log(lastTimeTrackingEntry);
+
+  // Checking if the last check-in date is the same as the current date (using dayjs)
+  if (
+    lastTimeTrackingEntry &&
+    dayjs(lastTimeTrackingEntry.checkIn).isSame(dayjs(), "day")
+  ) {
+    return res.status(HttpStatus.BAD_REQUEST).json({
+      success: false,
+      message: "You've already checked in today. Check-in is not allowed.",
+    });
+  }
 
   if (lastTimeTrackingEntry && lastTimeTrackingEntry.checkOut) {
     // User has already checked out today, they can't check in again
@@ -114,11 +138,16 @@ export const checkIn = tryCatchWrapper(async (req, res) => {
   }
 
   // Updating the existing Time Tracking entry with the current date and time as check-in time
-  lastTimeTrackingEntry.checkIn = new Date();
-  lastTimeTrackingEntry.active = true; // active set to true when checking in
-  const data = await timeTrackerService.editSpecificTimeTrackerService({
-    id: lastTimeTrackingEntry._id,
-    body: lastTimeTrackingEntry,
+  const newEntry = {
+    user,
+    checkIn: new Date(),
+    active: true,
+  };
+  // lastTimeTrackingEntry.checkIn = new Date();
+  // lastTimeTrackingEntry.active = true; // active set to true when checking in
+
+  const data = await timeTrackerService.addTimeTrackerService({
+    body: newEntry,
   });
   console.log(data);
 
@@ -130,14 +159,13 @@ export const checkIn = tryCatchWrapper(async (req, res) => {
   });
 });
 
-export const checkOut = tryCatchWrapper(async (req, res) => {
-  let userId = req.user.id;
+export const checkOut = asyncHandler(async (req, res) => {
+  let user = req.body.id;
 
   // recent Time Tracking entry for the user
   let lastTimeTrackingEntry = await timeTrackerService.getLastTimeTracking(
-    userId
+    user
   );
-
   // Checks if the user has previously checked in
   if (!lastTimeTrackingEntry || !lastTimeTrackingEntry.checkIn) {
     return res.status(HttpStatus.BAD_REQUEST).json({
@@ -145,23 +173,17 @@ export const checkOut = tryCatchWrapper(async (req, res) => {
       message: "You need to check in first before checking out.",
     });
   }
-
   // Set the check-out time
   lastTimeTrackingEntry.checkOut = new Date();
 
-  // Calculate the duration using the new function
-  lastTimeTrackingEntry.duration = duration(
-    lastTimeTrackingEntry.checkIn,
-    lastTimeTrackingEntry.checkOut
-  );
-
-  // Update the active status to false
   lastTimeTrackingEntry.active = false;
 
   const data = await timeTrackerService.editSpecificTimeTrackerService({
     id: lastTimeTrackingEntry._id,
     body: lastTimeTrackingEntry,
   });
+
+  console.log(data);
 
   successResponseData({
     res,
@@ -215,22 +237,12 @@ export const duration = tryCatchWrapper(async (req, res) => {
   });
 });
 
-const pauseTimers = new Map();
-
 export const pauseTimer = tryCatchWrapper(async (req, res) => {
-  const userId = req.user.id;
-
-  // Checks if the user already has a pause timer
-  if (pauseTimers.has(userId)) {
-    return res.status(HttpStatus.BAD_REQUEST).json({
-      success: false,
-      message: "Timer is already paused.",
-    });
-  }
-
-  // Find the most recent active Time Tracking entry for the user
+  const timeTrackingId = req.body.timeTrackingId;
+  const reason = req.body.reason; // Get reason from the request body
+  // Get the most recent active Time Tracking entry for the user
   let lastTimeTrackingEntry = await timeTrackerService.getLastTimeTracking(
-    userId
+    timeTrackingId
   );
 
   // Check if the user has already checked in and has an active session
@@ -246,106 +258,79 @@ export const pauseTimer = tryCatchWrapper(async (req, res) => {
     });
   }
 
-  // Calculate the duration of the current pause
-  let currentPauseDuration = 0;
-  if (lastTimeTrackingEntry.pauseTimer) {
-    currentPauseDuration =
-      (new Date() - lastTimeTrackingEntry.pauseTimer) / 1000;
+  // A new PauseTimer object with timestamp and reason
+  const newPauseTimer = {
+    pauseTime: new Date(), // Setting pauseTime to the current timestamp
+    reason: reason, // Set the reason for pausing
+  };
+
+  // Append the new PauseTimer object to the pauseTimers array
+
+  lastTimeTrackingEntry.pauseTimers.push(newPauseTimer);
+
+  // Increment the pausedCount
+  if (lastTimeTrackingEntry.pausedCount) {
+    lastTimeTrackingEntry.pausedCount += 1;
+  } else {
+    lastTimeTrackingEntry.pausedCount = 1;
   }
 
-  // Update the pauseTimer field with the current date and time
-  lastTimeTrackingEntry.pauseTimer = new Date();
-
-  // Update the active status to false to indicate that the tracking is paused
-  lastTimeTrackingEntry.active = false;
-
-  // Update the pausedDuration by adding the current pause duration
-  lastTimeTrackingEntry.pausedDuration += currentPauseDuration;
-
-  const data = await timeTrackerService.editSpecificTimeTrackerService({
+  // Save the updated Time Tracking entry
+  const updatedEntry = await timeTrackerService.editSpecificTimeTrackerService({
     id: lastTimeTrackingEntry._id,
     body: lastTimeTrackingEntry,
   });
-
-  // Create a pause timer and store its ID
-  const pauseTimerId = setTimeout(() => {
-    //Perform actions when pause duration is complete
-
-    lastTimeTrackingEntry.active = true; // Resume the tracking
-    lastTimeTrackingEntry.checkIn = new Date();
-
-    // Remove the pause timer from the map
-    pauseTimers.delete(userId);
-  }, pauseDurationInSeconds * 1000); // Convert to milliseconds
-
-  // Store the pause timer ID in the map
-  pauseTimers.set(userId, pauseTimerId);
-
   successResponseData({
     res,
     message: "Timer paused successfully.",
     statusCode: HttpStatus.CREATED,
-    data,
+    data: updatedEntry,
   });
 });
 
 export const resumeTimer = tryCatchWrapper(async (req, res) => {
-  const userId = req.user.id;
-
-  // Check if the user has a paused timer
-  if (!pauseTimers.has(userId)) {
-    return res.status(HttpStatus.BAD_REQUEST).json({
-      success: false,
-      message: "You must have a paused session to resume the timer.",
-    });
-  }
-
-  // Clear the pause timer when resuming
-  const pauseTimerId = pauseTimers.get(userId);
-  clearTimeout(pauseTimerId);
-
+  const timeTrackingId = req.body.timeTrackingId;
   // Find the most recent paused Time Tracking entry for the user
-  let lastTimeTrackingEntry =
-    await timeTrackerService.getLastPausedTimeTracking(userId);
+  let timeTrackingEntry = await timeTrackerService.getLastTimeTracking(
+    timeTrackingId
+  );
 
-  // Check if the user has a paused entry
-  if (
-    !lastTimeTrackingEntry ||
-    !lastTimeTrackingEntry.pauseTimer ||
-    lastTimeTrackingEntry.active
-  ) {
-    return res.status(HttpStatus.BAD_REQUEST).json({
-      success: false,
-      message: "You must have a paused session to resume the timer.",
+  if (!timeTrackingEntry) {
+    return res.status(HttpStatus.NOT_FOUND).json({
+      sucess: false,
+      message: "Time tracking entry not found",
     });
   }
 
-  // Calculate the time spent during the pause and subtract it from pausedDuration
-  const pauseDuration = (new Date() - lastTimeTrackingEntry.pauseTimer) / 1000;
-  lastTimeTrackingEntry.pausedDuration -= pauseDuration;
+  // Check if the user has a paused session
 
-  // Update the resume field with the current date and time
-  lastTimeTrackingEntry.resume = new Date();
+  if (!timeTrackingEntry.paused) {
+    return res.status(HttpStatus.BAD_REQUEST).json({
+      success: false,
+      messsage: "You must have a paused session to resume the timer",
+    });
+  }
 
-  // Update the active status to true to indicate that the tracking is resumed
-  lastTimeTrackingEntry.active = true;
+  // Update the Time Tracking entry to indicate it's resumed
+  lastPausedEntry.paused = false;
+  lastPausedEntry.active = true;
 
-  const data = await timeTrackerService.editSpecificTimeTrackerService({
-    id: lastTimeTrackingEntry._id,
-    body: lastTimeTrackingEntry,
+  const currentTime = new Date(); // Get the current timestamp
+  timeTrackingEntry.resumeTimer.push(currentTime); // Push the current time
+
+  // Save the updated Time Tracking entry
+  const updatedEntry = await timeTrackerService.editSpecificTimeTrackerService({
+    id: timeTrackingEntry._id,
+    body: timeTrackingEntry,
   });
-
-  // Remove the pause timer from the map
-  pauseTimers.delete(userId);
 
   successResponseData({
     res,
     message: "Timer resumed successfully.",
     statusCode: HttpStatus.CREATED,
-    data,
+    data: updatedEntry,
   });
 });
-
 export const calculatePausedDuration = tryCatchWrapper(async (req, res) => {
   const { pauseTimer, resumeTimer, pausedDuration } = req.body;
 
@@ -370,4 +355,38 @@ export const calculatePausedDuration = tryCatchWrapper(async (req, res) => {
   // ...
 
   return res.status(200).json({ updatedPausedDuration });
+});
+
+export const getCheckInTime = tryCatchWrapper(async (req, res) => {
+  const userId = req.params.id;
+
+  // Retrieve the user's most recent check-in time
+
+  const lastCheckInTimeEntry = await getLastTimeTracking(userId);
+
+  console.log(
+    JSON.parse(JSON.stringify(lastCheckInTimeEntry)),
+    userId,
+    lastCheckInTimeEntry?.checkIn
+  );
+
+  if (lastCheckInTimeEntry && lastCheckInTimeEntry.checkIn) {
+    // Sending the check-in time as a response if it exists
+    successResponseData({
+      res,
+      message: "Check-In time retrieved successfully",
+      statusCode: HttpStatus.OK,
+      data: {
+        checkInTime: { ...JSON.parse(JSON.stringify(lastCheckInTimeEntry)) },
+      },
+    });
+  } else {
+    // Sending a response indicating that no check-in time is available
+    successResponseData({
+      res,
+      message: "No check-in time available for the user",
+      statusCode: HttpStatus.OK,
+      data: { checkInTime: null },
+    });
+  }
 });
