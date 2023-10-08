@@ -1,0 +1,25 @@
+.dialogTitle {
+  color: white;
+  background-color: rgba(124, 53, 118, 0.9);
+  transition: background-color 0.3s ease-in-out;
+}
+.dialogTitle.scrolled {
+  background-color: rgba(184, 122, 178, 0.9);
+  transition: background-color 0.2s linear;
+  backdrop-filter: blur(10px);
+}
+
+.custom-dialog {
+  background-color: rgb(213, 252, 252);
+}
+
+.modal-headers {
+  font-weight: 900;
+  color: rgb(75, 13, 72);
+  font-size: medium;
+  font-family: "Courier New", Courier, monospace;
+}
+
+.textField {
+  color: rgb(53, 18, 51);
+}

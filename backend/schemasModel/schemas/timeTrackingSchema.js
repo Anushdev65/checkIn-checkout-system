@@ -8,8 +8,16 @@ let timeTrackingSchema = Schema(
     },
     checkIn: {
       type: Date,
-      default: Date.now,
     },
+
+    // checkIn: [
+    //   {
+    //     type: Date,
+    //     title: String,
+    //     plannedWorkingHours: Number,
+    //   }
+    // ],
+
     checkOut: {
       type: Date,
     },
@@ -32,11 +40,9 @@ let timeTrackingSchema = Schema(
       type: Boolean,
       default: false,
     },
-    note: {
-      type: String,
-    },
+    notes: [String],
   },
-  { timestamp: true }
+  { timestamps: true }
 );
 
 export default timeTrackingSchema;

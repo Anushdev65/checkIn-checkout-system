@@ -33,4 +33,8 @@ timeTrackerRouter
   .route("/save/checkin/:id")
   .get(timeTrackingController.getCheckInTime);
 
+ timeTrackerRouter
+ .route("/note") 
+ .post(timeTrackingController.addNotes)
+
 export default timeTrackerRouter;

@@ -13,21 +13,31 @@ import {
   usePauseTimerMutation,
   useResumeTimerMutation,
   usePausedDurationMutation,
+  useNotesMutation,
   useSaveCheckInTimeQuery,
 } from "../../services/api/timeTracking";
 
 import { useSelector } from "react-redux";
 import * as React from "react";
 import { styled } from "@mui/material/styles";
+import IconButton from "@mui/material/IconButton";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+
 import Paper from "@mui/material/Paper";
 import "../../styles/table.css";
 import { getUserInfo } from "../../localStorage/localStorage";
+import PauseTimerDialog from "../Dialog";
+import CheckInPop from "../PopupModal";
+
+// const localizedFormat = require("dayjs/plugin/localizedFormat");
+
+// dayjs.extend(localizedFormat);
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -64,8 +74,8 @@ export default function TimeTrackingTable() {
   const [addRow, setAddRow] = useState({
     checkIn: "",
     checkOut: "",
-    pauseTimer: "",
-    resumeTimer: "",
+    pauseTimers: [],
+    resumeTimer: [],
     pausedDuration: "",
     duration: "",
     notes: "",
@@ -95,8 +105,8 @@ export default function TimeTrackingTable() {
 
   const { data: checkInTimeData, isLoading: checkInLoading } =
     useSaveCheckInTimeQuery(userId);
-
   console.log(checkInTimeData);
+
   const [userCheckOut, { data: userCheckOutData, error: userCheckOutError }] =
     useUserCheckOutMutation();
 
@@ -109,6 +119,8 @@ export default function TimeTrackingTable() {
   const [resumeTimer, { data: resumeTimerData, error: resumeTimerError }] =
     useResumeTimerMutation();
 
+  const [addNotes, { data, isSucess, error, isLoading }] = useNotesMutation();
+
   const [
     pausedDuration,
     { data: PausedDurationData, error: pausedDurationError },
@@ -118,23 +130,81 @@ export default function TimeTrackingTable() {
 
   const [checkedIn, setCheckedIn] = useState(false);
 
+  const [isPauseDialogOpen, setIsPauseDialogOpen] = useState(false);
+
+  const [pauseReason, setPauseReason] = useState("");
+
+  const [notes, setNotes] = useState("");
+
+  const [isPauseButtonVisible, setIsPauseButtonVisible] = useState(true);
+
+  const [workedHours, setWorkedHours] = useState("");
+
+  // State variable to manage the modal's visibility
+  const [checkInModalOpen, setCheckInModalOpen] = useState(false);
+
+  //function to handle openning the Check-In modal
+  const openCheckInModal = () => {
+    setCheckInModalOpen(true);
+  };
+
+  // Function to handle closing the Check-In modal
+  const closeCheckInModal = () => {
+    setCheckInModalOpen(false);
+  };
+
   useEffect(() => {
-    if (checkInLoading) return;
+    if (
+      checkInTimeData?.data?.checkInTime?.checkIn &&
+      checkInTimeData?.data?.checkInTime?.checkOut
+    ) {
+      // Calculating the duration between checkIn and checkOut
+      const durationMinutes = calculateDuration(
+        checkInTimeData?.data?.checkInTime?.checkIn,
+        checkInTimeData?.data?.checkInTime?.checkOut
+      );
+
+      const formattedHours = Math.floor(durationMinutes / 60)
+        .toString()
+        .padStart(2, "0");
+      const formattedMinutes = (durationMinutes % 60)
+        .toString()
+        .padStart(2, "0");
+
+      setWorkedHours(`${formattedHours} : ${formattedMinutes} minutes`);
+    }
+  }, [checkInTimeData, checkInTimeData?.data?.checkInTime?.checkOut]);
+
+  const openPauseDialog = () => {
+    setIsPauseDialogOpen(true);
+  };
+
+  const closePauseDialog = () => {
+    setIsPauseDialogOpen(false);
+    setPauseReason("");
+  };
+
+  useEffect(() => {
+    // if (checkInLoading) return;
 
     if (checkInTimeData?.data?.checkInTime?.checkIn) {
       setCheckedIn(true);
+    }
+    if (checkInTimeData?.data?.checkInTime?.pauseTimers?.length > 0) {
+      setTimerPaused(true);
+    } else {
       setTimerPaused(false);
     }
-  }, [checkInLoading]);
-
-  useEffect(() => {
-    if (checkInTimeData && checkInTimeData.checkIn) {
-      // If check-in time data exists, update the state only if it's different
-      if (addRow.checkIn !== checkInTimeData.checkIn) {
-        setAddRow({ ...addRow, checkIn: checkInTimeData.checkIn });
-      }
-    }
   }, [checkInTimeData]);
+
+  // useEffect(() => {
+  //   if (checkInTimeData && checkInTimeData.checkIn) {
+  //     // If check-in time data exists, update the state only if it's different
+  //     if (addRow.checkIn !== checkInTimeData.checkIn) {
+  //       setAddRow({ ...addRow, checkIn: checkInTimeData.checkIn });
+  //     }
+  //   }
+  // }, [checkInTimeData]);
 
   const handleAddTimeTracker = async () => {
     try {
@@ -205,6 +275,7 @@ export default function TimeTrackingTable() {
       setCheckedIn(true);
       setTimerPaused(false); // Enable the "Pause Timer" button
       setResumeDisabled(true); // Disable the "Resume Timer" button
+      openCheckInModal();
 
       if (response.error) {
         console.error("Check-In Error", response.error);
@@ -243,36 +314,54 @@ export default function TimeTrackingTable() {
   };
 
   const handlePauseTimer = async () => {
+    // const requestBody = {
+    //   timeTrackingId: timeTrackingId,
+    //   reason: reason,
+    // };
+
+    // if (addRow.checkIn && !addRow.pauseTimer) {
+    //   setAddRow({
+    //     ...addRow,
+    //     pauseTimer: currentTime.format("HH:mm:ss A"),
+    //   });
+    // }
+    // const response = await pauseTimer({ body: requestBody });
+
+    setTimerPaused(true);
+    setResumeDisabled(false);
+    openPauseDialog();
+  };
+
+  const handleReasonSubmit = async () => {
     try {
       const requestBody = {
-        id: userId,
-        pauseTimer: currentTime.format("HH:mm:ss A"),
+        timeTrackingId: checkInTimeData?.data?.checkInTime?._id,
+        reason: pauseReason,
       };
+      // console.log("Reason submitted: ", reason);
 
-      if (addRow.checkIn && !addRow.pauseTimer) {
-        setAddRow({
-          ...addRow,
-          pauseTimer: currentTime.format("HH:mm:ss A"),
-        });
-      }
       const response = await pauseTimer({ body: requestBody });
 
-      setTimerPaused(true);
-      setResumeDisabled(false);
       if (response.error) {
-        console.error("Error while pausing the timer", response.error);
+        console.log("Error with the reason ", response.error);
       } else {
-        console.log("Sucessfully paused the time", response.data);
+        console.log("Sucessfull added the reason", response.data);
+        setTimerPaused(true);
       }
+
+      setIsPauseButtonVisible(true);
+
+      setResumeDisabled(false);
+      closePauseDialog();
     } catch (error) {
-      console.error("Error while pausing time ");
+      console.error("Error while pausing time", error);
     }
   };
 
   const handleResumeTimer = async () => {
     try {
       const requestBody = {
-        id: userId,
+        timeTrackingId: checkInTimeData?.data?.checkInTime?._id,
         resumeTimer: currentTime.format("hh:mm.ss-A"),
       };
 
@@ -283,14 +372,35 @@ export default function TimeTrackingTable() {
       } else {
         console.log("Successfully resumed time", response.data);
 
-        setAddRow((prevRow) => ({
-          ...prevRow,
-          pauseTimer: null,
-          pausedDuration: 0,
-        }));
+        // setAddRow((prevRow) => ({
+        //   ...prevRow,
+        //   pauseTimer: null,
+        //   pausedDuration: 0,
+        // }));
       }
     } catch (error) {
       console.error("Error while resuming time", error);
+    }
+  };
+
+  const handleAddNotes = async () => {
+    try {
+      const requestBody = {
+        timeTrackingId: checkInTimeData?.data?.checkInTime?._id,
+        notes: addRow.notes,
+      };
+      //
+      const response = await addNotes({ body: requestBody });
+
+      if (response.error) {
+        console.error("Add Notes Error", response.error);
+      } else {
+        console.log("Notes added sucessfully", response.data);
+      }
+    } catch (error) {
+      console.error("Error while adding notes", error);
+
+      setAddRow({ ...addRow, notes: "" });
     }
   };
 
@@ -317,124 +427,198 @@ export default function TimeTrackingTable() {
   };
 
   return (
-    <TableContainer component={Paper} className="custom-table-container">
-      <Table sx={{ minWidth: 700 }} aria-label="custom-table">
-        <TableHead>
-          <TableRow>
-            <StyledTableCell align="center" className="custom-table-cell">
-              Check-In
-            </StyledTableCell>
-            <StyledTableCell align="center" className="custom-table-cell">
-              Check-Out
-            </StyledTableCell>
-            <StyledTableCell align="center" className="custom-table-cell">
-              Pause Timer
-            </StyledTableCell>
-            <StyledTableCell align="center" className="custom-table-cell">
-              {" "}
-              Resume Timer
-            </StyledTableCell>
-            {/* <StyledTableCell align="center" className="custom-table-cell">
+    <div>
+      <TableContainer component={Paper} className="custom-table-container">
+        <Table sx={{ minWidth: 700 }} aria-label="custom-table">
+          <TableHead>
+            <TableRow>
+              <StyledTableCell align="center" className="custom-table-cell">
+                Check-In
+              </StyledTableCell>
+              <StyledTableCell align="center" className="custom-table-cell">
+                Check-Out
+              </StyledTableCell>
+              <StyledTableCell align="center" className="custom-table-cell">
+                Pause Timer
+              </StyledTableCell>
+              <StyledTableCell align="center" className="custom-table-cell">
+                Paused reasons
+              </StyledTableCell>
+              <StyledTableCell align="center" className="custom-table-cell">
+                {" "}
+                Resume Timer
+              </StyledTableCell>
+              {/* <StyledTableCell align="center" className="custom-table-cell">
               Paused Duration
             </StyledTableCell> */}
-            <StyledTableCell align="center" className="custom-table-cell">
-              Worked Hours
-            </StyledTableCell>
-            <StyledTableCell align="center" className="custom-table-cell">
-              Notes
-            </StyledTableCell>
-            {/* <StyledTableCell align="center" className="custom-table-cell">
+              <StyledTableCell align="center" className="custom-table-cell">
+                Worked Hours
+              </StyledTableCell>
+              <StyledTableCell align="center" className="custom-table-cell">
+                Notes
+              </StyledTableCell>
+              {/* <StyledTableCell align="center" className="custom-table-cell">
               Actions
             </StyledTableCell> */}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          <StyledTableRow>
-            <StyledTableCell>
-              {checkInLoading ? (
-                <>Loading</>
-              ) : checkInTimeData.data.checkInTime ? (
-                <div>
-                  <p> Checked in at: </p>
-                  <span className="check-in-time">
-                    {checkInTimeData.data.checkInTime?.checkIn}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <StyledTableRow>
+              <StyledTableCell>
+                {checkInLoading ? (
+                  <>Loading</>
+                ) : checkInTimeData.data.checkInTime ? (
+                  <div>
+                    <p> Checked in at: </p>
+                    <span className="check-in-time">
+                      {dayjs(checkInTimeData.data.checkInTime?.checkIn).format(
+                        "YYYY-MM-DD HH:mm:ss"
+                      )}
+                    </span>
+                  </div>
+                ) : (
+                  <Button
+                    variant="outlined"
+                    onClick={handleCheckIn}
+                    className="button-changes"
+                  >
+                    Check-In
+                  </Button>
+                )}
+              </StyledTableCell>
+
+              <StyledTableCell align="center">
+                {console.log(checkedIn)}
+                {checkInTimeData?.data?.checkInTime?.checkOut ? (
+                  // addRow.checkOut ? (
+                  //   addRow.checkOut
+                  // ) : (
+                  //   <Button variant="outlined" onClick={handleCheckout}>
+                  //     Check-Out
+                  //   </Button>
+                  // )
+                  <span>
+                    {dayjs(checkInTimeData?.data?.checkInTime?.checkOut).format(
+                      "YYYY-MM-DD HH:mm:ss"
+                    )}
                   </span>
-                </div>
-              ) : (
-                <Button variant="outlined" onClick={handleCheckIn}>
-                  Check-In
-                </Button>
-              )}
-            </StyledTableCell>
+                ) : (
+                  <Button
+                    variant="outlined"
+                    onClick={handleCheckout}
+                    className="button-changes"
+                    disabled={
+                      checkInTimeData?.data?.checkInTime?.checkIn ? false : true
+                    }
+                    style={{
+                      padding: "2px 4px",
+                      fontSize: "12px",
+                    }}
+                  >
+                    Check-Out
+                  </Button>
+                )}
+              </StyledTableCell>
 
-            <StyledTableCell align="center">
-              {console.log(checkedIn)}
-
-              {!checkedIn || checkInTimeData?.data?.checkInTime?.checkOut ? (
-                // addRow.checkOut ? (
-                //   addRow.checkOut
-                // ) : (
-                //   <Button variant="outlined" onClick={handleCheckout}>
-                //     Check-Out
-                //   </Button>
-                // )
-
-                checkInTimeData?.data?.checkInTime?.checkOut
-              ) : (
-                <Button variant="outlined" onClick={handleCheckout}>
-                  Check-Out
-                </Button>
-              )}
-            </StyledTableCell>
-
-            <StyledTableCell align="center">
-              {checkInTimeData?.data?.checkInTime?.pauseTimer ? (
-                checkInTimeData?.data?.checkInTime?.pauseTimer
-              ) : (
+              <StyledTableCell align="center">
+                {addRow.pauseTimers.map((pauseTimer, index) => (
+                  <div key={index}>{pauseTimer.reason}</div>
+                ))}
                 <Button
                   variant="outlined"
                   onClick={handlePauseTimer}
-                  disabled={timerPaused}
+                  disabled={
+                    checkInTimeData?.data?.checkInTime?.checkIn
+                      ? false
+                      : true || checkInTimeData?.data?.checkInTime?.active
+                      ? true
+                      : false
+                  }
+                  className="button-changes"
+                  style={{
+                    padding: "2px 4px",
+                    fontSize: "12px",
+                  }}
                 >
                   Pause Timer
                 </Button>
-              )}
-            </StyledTableCell>
+              </StyledTableCell>
 
-            <StyledTableCell align="center">
-              <Button
-                variant="outlined"
-                onClick={handleResumeTimer}
-                disabled={resumeDisabled}
-              >
-                Resume Timer
-              </Button>
-            </StyledTableCell>
+              <StyledTableCell align="center">
+                <div className="reason-container">
+                  {checkInTimeData?.data?.checkInTime?.pauseTimers?.map(
+                    (item, index) => (
+                      <div key={index} className="reason-cell">
+                        {item?.reason}
+                      </div>
+                    )
+                  )}
+                </div>
+              </StyledTableCell>
 
-            {/* <StyledTableCell align="center">
+              <StyledTableCell align="center">
+                <Button
+                  variant="outlined"
+                  onClick={handleResumeTimer}
+                  disabled={!timerPaused}
+                  className="button-changes"
+                  style={{
+                    padding: "2px 4px",
+                    fontSize: "12px",
+                  }}
+                >
+                  Resume Timer
+                </Button>
+              </StyledTableCell>
+
+              {/* <StyledTableCell align="center">
               {addRow.pausedDuration}
             </StyledTableCell> */}
-            <StyledTableCell align="center">
-              {addRow.checkIn && addRow.checkOut && durationData ? (
-                <p>Total Duration: {durationData.duration}</p>
-              ) : (
-                ""
-              )}
-              {durationError && <p>Error: {durationError.message}</p>}
-            </StyledTableCell>
-            <StyledTableCell align="center">
-              <TextareaAutosize
-                rowsMin={3}
-                value={addRow.notes}
-                onChange={(e) =>
-                  setAddRow({ ...addRow, notes: e.target.value })
-                }
-              />
-            </StyledTableCell>
-          </StyledTableRow>
-        </TableBody>
-      </Table>
-    </TableContainer>
+              <StyledTableCell align="center">
+                {workedHours}
+                {durationError && <p>Error: {durationError.message}</p>}
+              </StyledTableCell>
+              <StyledTableCell align="center">
+                {/* {checkInTimeData?.data?.checkInTime?.notes ? (
+                  checkInTimeData?.data?.checkInTime?.notes
+                ) : ( */}
+                {/* <> */}
+                <TextareaAutosize
+                  rowsMin={3}
+                  style={{
+                    width: "100%",
+                    minHeight: "40px",
+                    fontSize: "16px",
+                    marginTop: "10px",
+                  }}
+                  value={addRow.notes}
+                  onChange={(e) =>
+                    setAddRow({ ...addRow, notes: e.target.value })
+                  }
+                />
+                <IconButton
+                  color="primary"
+                  aria-label="add Note"
+                  onClick={handleAddNotes}
+                >
+                  <AddCircleIcon />
+                </IconButton>
+                {/* </> */}
+                {/* )} */}
+              </StyledTableCell>
+            </StyledTableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <PauseTimerDialog
+        open={isPauseDialogOpen}
+        onClose={closePauseDialog}
+        onReasonSubmit={handleReasonSubmit}
+        reason={pauseReason}
+        setReason={setPauseReason}
+      />
+      <CheckInPop open={checkInModalOpen} handleClose={closeCheckInModal} />
+    </div>
   );
 }
 

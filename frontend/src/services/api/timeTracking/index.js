@@ -112,6 +112,7 @@ export const timeTrackerApi = createApi({
           body: body,
         };
       },
+      invalidatesTags: ["CheckIn"],
     }),
     pausedDuration: builder.mutation({
       query: ({ body }) => {
@@ -122,6 +123,18 @@ export const timeTrackerApi = createApi({
         };
       },
     }),
+
+    notes: builder.mutation({
+      query: ({ body }) => {
+        return {
+          url: `/time/Tracker/note`,
+          method: "POST",
+          body: body,
+        };
+      },
+      invalidatesTags: ["CheckIn"]
+    }),
+
     saveCheckInTime: builder.query({
       query: (id) => {
         return {
@@ -132,6 +145,8 @@ export const timeTrackerApi = createApi({
       providesTags: ["CheckIn"],
     }),
   }),
+
+  
 });
 
 export const {
@@ -146,5 +161,6 @@ export const {
   useResumeTimerMutation,
   usePauseTimerMutation,
   usePausedDurationMutation,
+  useNotesMutation,
   useSaveCheckInTimeQuery,
 } = timeTrackerApi;

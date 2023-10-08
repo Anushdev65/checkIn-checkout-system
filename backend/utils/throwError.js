@@ -3,5 +3,3 @@ export let throwError = ({ message, statusCode }) => {
   error.statusCode = statusCode;
   throw error;
 };
-
-

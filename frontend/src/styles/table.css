@@ -1,11 +1,12 @@
 .custom-table-container {
-  border: 1px solid #080808;
+  /* border: 1px solid #080808; */
   box-shadow: 3px 3px 3px 3px #1c1929;
   margin-top: 5rem;
 }
 
 .custom-table-cell {
-  border: 1px solid #ccc;
+  border: 1px solid #15505a;
+
 }
 
 .green-background {
@@ -17,4 +18,28 @@
   font-weight: 400;
   color: #007bff;
   /* margin-left: 10px; */
+}
+
+.reason-container {
+  white-space: pre-line;
+}
+
+.reason-cell {
+  font-size: 14px;
+  font-weight: 600;
+  color: #15505a;
+  display: block;
+  margin-bottom: 5px;
+  font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
+    "Lucida Sans", Arial, sans-serif;
+}
+
+.button-changes {
+  padding: 2px 4px;
+  font-size: 12px;
+  transition: 0.5s ease;
+}
+
+.button-changes:hover {
+  background-color: #0c427c;
 }
