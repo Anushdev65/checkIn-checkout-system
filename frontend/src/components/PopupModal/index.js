@@ -16,6 +16,10 @@ import React, { useEffect, useState } from "react";
 import "../../styles/muimodal.css";
 import TextField from "@mui/material/TextField";
 
+import { useUserCheckInMutation } from "../../services/api/timeTracking";
+import { getUserInfo } from "../../localStorage/localStorage";
+import dayjs from "dayjs";
+
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
@@ -89,6 +93,56 @@ BootstrapDialogTitle.propTypes = {
 };
 
 export default function CheckInPop({ open, handleClose }) {
+  const { user } = getUserInfo();
+  const userId = user?._id;
+
+  const currentTime = dayjs();
+
+  const [plannedWorkingHours, setPlannedWorkingHours] = useState("");
+  const [workTitle, setWorkTitle] = useState("");
+
+  const predefinedHours = [
+    "2 hours",
+    "4 hours",
+    "6 hours",
+    "8 hours",
+    "10 hours",
+  ];
+  // Defining the fetched api of checkIn
+  const [userCheckIn, { data: checkInData, error: checkInError }] =
+    useUserCheckInMutation();
+
+  const handleCheckIn = async () => {
+    try {
+      const requestBody = {
+        id: userId,
+        checkIn: currentTime.format("hh:mm.ss-A"),
+        title: workTitle,
+        plannedWorkingHours: parseFloat(plannedWorkingHours),
+      };
+
+      const response = await userCheckIn({ body: requestBody });
+
+      if (response.error) {
+        console.error("Check-In Error", response.error);
+      } else {
+        console.log("Check-In successful", response.data);
+        // Handle successful check-in here
+        handleClose();
+      }
+    } catch (error) {
+      console.error("Check-In Error", error);
+    }
+  };
+  // Event handlers to update workTitle and plannedWorking hours
+
+  const handleWorkTitleChange = (event) => {
+    setWorkTitle(event.target.value);
+  };
+
+  const handlePlannedWorkingHoursChange = (hours) => {
+    setPlannedWorkingHours(hours);
+  };
   return (
     <div>
       <BootstrapDialog
@@ -105,7 +159,7 @@ export default function CheckInPop({ open, handleClose }) {
         style={{
           width: "35%",
           height: "100vh",
-          margin: "0 auto"
+          margin: "0 auto",
         }}
       >
         <BootstrapDialogTitle
@@ -116,12 +170,7 @@ export default function CheckInPop({ open, handleClose }) {
         >
           check-In Credentials
         </BootstrapDialogTitle>
-        <DialogContent
-          dividers
-          className="custom-dialog"
-          
-          
-        >
+        <DialogContent dividers className="custom-dialog">
           <Container component="main">
             <CssBaseline />
             <Box
@@ -142,24 +191,40 @@ export default function CheckInPop({ open, handleClose }) {
                   label="Set the title for your work."
                   name="title"
                   autoFocus
+                  value={workTitle} // Binding the value to the workTitle State
+                  onChange={handleWorkTitleChange} // Adding event handler
                 />
               </div>
               <Divider />
               <div>
                 <h5 className="modal-headers">
-                  {" "}
-                  Please Input the number of hours you plan on working!{" "}
+                  Please choose the number of hours you plan on working!
                 </h5>
-                <TextField
-                  className="textfield"
-                  variant="standard"
-                  margin="normal"
-                  minWidth
-                  name="plannedHours"
-                  label="Input the number"
-                  id="plannedHours"
-                  type="number"
-                />
+                <div
+                  style={{
+                    display: "inline-block",
+                  }}
+                >
+                  {predefinedHours.map((hours) => (
+                    <Button
+                      key={hours}
+                      variant="outlined"
+                      onClick={() => {
+                        handlePlannedWorkingHoursChange(hours);
+                        console.log(`selected hours: ${hours}`);
+                      }}
+                      style={{
+                        margin: "4px",
+                        backgroundColor:
+                          plannedWorkingHours === hours ? "#1976D2" : "white",
+                        color:
+                          plannedWorkingHours === hours ? "white" : "black",
+                      }}
+                    >
+                      {hours}
+                    </Button>
+                  ))}
+                </div>
               </div>
               <Divider />
 
@@ -171,7 +236,7 @@ export default function CheckInPop({ open, handleClose }) {
                 <Button
                   variant="contained"
                   color="success"
-                  // onClick={handleCheckIn}
+                  onClick={handleCheckIn}
                   // className="button-changes"
                   style={{
                     marginLeft: "12.5rem",

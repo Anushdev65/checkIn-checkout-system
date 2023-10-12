@@ -10,21 +10,23 @@ let timeTrackingSchema = Schema(
       type: Date,
     },
 
-    // checkIn: [
-    //   {
-    //     type: Date,
-    //     title: String,
-    //     plannedWorkingHours: Number,
-    //   }
-    // ],
+    title: {
+      type: String,
+    },
+
+    plannedWorkingHours: {
+      type: Number,
+    },
 
     checkOut: {
       type: Date,
     },
+
     duration: {
       type: Number,
       default: 0,
     },
+
     pauseTimers: [pauseTimerSchema],
     pausedCount: {
       type: Number,
@@ -36,6 +38,9 @@ let timeTrackingSchema = Schema(
       type: Number,
     },
 
+    pauseStatus: {
+      type: Boolean,
+    },
     active: {
       type: Boolean,
       default: false,

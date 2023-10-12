@@ -4,9 +4,13 @@
   margin-top: 5rem;
 }
 
+.custom-table-head {
+  color: #007bff;
+}
+
 .custom-table-cell {
   border: 1px solid #15505a;
-
+  background-color: #0c427c;
 }
 
 .green-background {

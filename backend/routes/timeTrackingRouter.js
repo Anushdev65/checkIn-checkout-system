@@ -1,7 +1,6 @@
 import { Router } from "express";
-import { sortFilterPagination } from "../middleware/sortSelectPage.js";
 import { timeTrackingController } from "../controllers/index.js";
-
+import { sortFilterPagination } from "../middleware/sortSelectPage.js";
 export const timeTrackerRouter = Router();
 
 timeTrackerRouter
@@ -33,8 +32,6 @@ timeTrackerRouter
   .route("/save/checkin/:id")
   .get(timeTrackingController.getCheckInTime);
 
- timeTrackerRouter
- .route("/note") 
- .post(timeTrackingController.addNotes)
+timeTrackerRouter.route("/note").post(timeTrackingController.addNotes);
 
 export default timeTrackerRouter;

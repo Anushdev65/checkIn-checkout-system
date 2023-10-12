@@ -171,6 +171,10 @@ export const deleteSpecificTimeTracker = tryCatchWrapper(async (req, res) => {
 export const checkIn = tryCatchWrapper(async (req, res) => {
   // Get the user ID from the request.
   let user = req.body.id;
+  let workingTitle = req.body.title;
+
+  let plannedWorkingHours = req.body.plannedWorkingHours;
+  // console.log(workingTitle, plannedWorkingHours);
   // // Fetch the user's data, including the user ID
   // console.log("User ID:", user);
   const userData = await authService.detailSpecificAuthUserService(user);
@@ -220,6 +224,8 @@ export const checkIn = tryCatchWrapper(async (req, res) => {
     user,
     checkIn: new Date(),
     active: true,
+    title: workingTitle,
+    plannedWorkingHours: parseFloat(plannedWorkingHours),
   };
   // lastTimeTrackingEntry.checkIn = new Date();
   // lastTimeTrackingEntry.active = true; // active set to true when checking in
@@ -354,6 +360,7 @@ export const pauseTimer = tryCatchWrapper(async (req, res) => {
     }
 
     lastTimeTrackingEntry.active = false;
+    lastTimeTrackingEntry.pauseStatus = true;
     // A new PauseTimer object with timestamp and reason
     const newPauseTimer = {
       pauseTime: new Date(), // Setting pauseTime to the current timestamp
@@ -417,6 +424,7 @@ export const resumeTimer = tryCatchWrapper(async (req, res) => {
 
   // Update the Time Tracking entry to indicate it's resumed
   timeTrackingEntry.active = true;
+  timeTrackingEntry.pauseStatus = false;
 
   const currentTime = new Date(); // Get the current timestamp
   timeTrackingEntry.resumeTimer.push(currentTime); // Push the current time
@@ -434,6 +442,7 @@ export const resumeTimer = tryCatchWrapper(async (req, res) => {
     data: updatedEntry,
   });
 });
+
 export const calculatePausedDuration = tryCatchWrapper(async (req, res) => {
   const { pauseTimer, resumeTimer, pausedDuration } = req.body;
 
@@ -497,19 +506,19 @@ export const getCheckInTime = tryCatchWrapper(async (req, res) => {
 
 export const addNotes = tryCatchWrapper(async (req, res) => {
   const timeTrackingId = req.body.timeTrackingId;
-  const notes = req.body.notes;
+  const newNote = req.body.notes;
   // Find the most recent paused Time Tracking entry for the user
   let timeTrackingEntry =
     await timeTrackerService.detailSpecificTimeTrackerService({
       id: timeTrackingId,
-  });
+    });
 
   if (!timeTrackingEntry) {
-    return res.status(404).json({ message: 'Time tracking entry not found' });
+    return res.status(404).json({ message: "Time tracking entry not found" });
   }
 
   // Append the notes in the time tracking entry
-  timeTrackingEntry.notes = notes;
+  timeTrackingEntry.notes.push(newNote);
 
   // Save the updated time tracking entry to the database
   await timeTrackingEntry.save();
@@ -518,7 +527,6 @@ export const addNotes = tryCatchWrapper(async (req, res) => {
     res,
     message: "Notes added sucessfully ",
     statusCode: HttpStatus.OK,
-    data: timeTrackingEntry
-  })
-
+    data: timeTrackingEntry,
+  });
 });

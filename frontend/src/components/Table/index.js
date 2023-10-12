@@ -17,7 +17,6 @@ import {
   useSaveCheckInTimeQuery,
 } from "../../services/api/timeTracking";
 
-import { useSelector } from "react-redux";
 import * as React from "react";
 import { styled } from "@mui/material/styles";
 import IconButton from "@mui/material/IconButton";
@@ -34,7 +33,8 @@ import "../../styles/table.css";
 import { getUserInfo } from "../../localStorage/localStorage";
 import PauseTimerDialog from "../Dialog";
 import CheckInPop from "../PopupModal";
-
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 // const localizedFormat = require("dayjs/plugin/localizedFormat");
 
 // dayjs.extend(localizedFormat);
@@ -71,15 +71,15 @@ export default function TimeTrackingTable() {
   const { user } = getUserInfo();
   const userId = user?._id;
 
-  const [addRow, setAddRow] = useState({
-    checkIn: "",
-    checkOut: "",
-    pauseTimers: [],
-    resumeTimer: [],
-    pausedDuration: "",
-    duration: "",
-    notes: "",
-  });
+  // const [addRow, setAddRow] = useState({
+  //   checkIn: "",
+  //   checkOut: "",
+  //   pauseTimers: [],
+  //   resumeTimer: [],
+  //   pausedDuration: "",
+  //   duration: "",
+  //   notes: [],
+  // });
 
   const [timerPaused, setTimerPaused] = useState(true);
   const [resumeDisabled, setResumeDisabled] = useState(true);
@@ -134,7 +134,7 @@ export default function TimeTrackingTable() {
 
   const [pauseReason, setPauseReason] = useState("");
 
-  const [notes, setNotes] = useState("");
+  const [noteText, setNoteText] = useState("");
 
   const [isPauseButtonVisible, setIsPauseButtonVisible] = useState(true);
 
@@ -257,34 +257,45 @@ export default function TimeTrackingTable() {
     }
   };
 
-  // handleCheckIn function to implement logic for checkIn button as well as fetching the api inside it.
+  // handleCheckIn function to implement logic after user checks in
   const handleCheckIn = async () => {
     try {
-      const requestBody = {
-        id: userId,
-        checkIn: currentTime.format("hh:mm.ssA"),
+      //  calculating the timeStamp when the planned working hours will end
+
+      const plannedWorkingHours =
+        checkInTimeData?.data?.checkInTime?.plannedWorkingHours || 0;
+      const plannedWorkingMilliseconds = plannedWorkingHours * 60 * 60 * 1000;
+      const plannedWorkingEndTime =
+        new Date().getTime() + plannedWorkingMilliseconds;
+
+      // Setting up a timer to check remaining time
+
+      const checkRemainingTime = () => {
+        const currentTime = new Date().getTime();
+        const remainingTime = plannedWorkingEndTime - currentTime;
+
+        if (remainingTime < 5 * 60 * 1000) {
+          // Displaying an alert when there are 5 minutes or less left
+          toast.warning("You have 5 miutes left of your planned working hours");
+        }
       };
-
-      // setAddRow({
-      //   ...addRow,
-      //   checkIn: currentTime.format("hh:mm.ssA"),
-      // });
-
-      const response = await userCheckIn({ body: requestBody });
+      const timer = setInterval(checkRemainingTime, 1000);
 
       setCheckedIn(true);
-      setTimerPaused(false); // Enable the "Pause Timer" button
-      setResumeDisabled(true); // Disable the "Resume Timer" button
+
       openCheckInModal();
 
       if (response.error) {
         console.error("Check-In Error", response.error);
       } else {
         console.log("Check-In successful", response.data);
-        // Handle successful check-in here
+        // Handle successful check-in
       }
+
+      // clears the timer when the component unmounts
+      return () => clearInterval(timer);
     } catch (error) {
-      console.error("Check-In Error", error);
+      console.error("Check-in Error", error);
     }
   };
 
@@ -327,8 +338,8 @@ export default function TimeTrackingTable() {
     // }
     // const response = await pauseTimer({ body: requestBody });
 
-    setTimerPaused(true);
-    setResumeDisabled(false);
+    // setTimerPaused(true);
+    // setResumeDisabled(false);
     openPauseDialog();
   };
 
@@ -351,7 +362,7 @@ export default function TimeTrackingTable() {
 
       setIsPauseButtonVisible(true);
 
-      setResumeDisabled(false);
+      // setResumeDisabled(false);
       closePauseDialog();
     } catch (error) {
       console.error("Error while pausing time", error);
@@ -366,7 +377,7 @@ export default function TimeTrackingTable() {
       };
 
       const response = await resumeTimer({ body: requestBody });
-      setTimerPaused(false);
+      // setTimerPaused(false);
       if (response.error) {
         console.error("Error while resuming time", response.error);
       } else {
@@ -387,7 +398,7 @@ export default function TimeTrackingTable() {
     try {
       const requestBody = {
         timeTrackingId: checkInTimeData?.data?.checkInTime?._id,
-        notes: addRow.notes,
+        notes: noteText,
       };
       //
       const response = await addNotes({ body: requestBody });
@@ -396,11 +407,12 @@ export default function TimeTrackingTable() {
         console.error("Add Notes Error", response.error);
       } else {
         console.log("Notes added sucessfully", response.data);
+        setNoteText("");
       }
     } catch (error) {
       console.error("Error while adding notes", error);
 
-      setAddRow({ ...addRow, notes: "" });
+      // setAddRow({ ...addRow, notes: "" });
     }
   };
 
@@ -434,6 +446,9 @@ export default function TimeTrackingTable() {
             <TableRow>
               <StyledTableCell align="center" className="custom-table-cell">
                 Check-In
+              </StyledTableCell>
+              <StyledTableCell align="center" className="custom-table-cell">
+                Work Title
               </StyledTableCell>
               <StyledTableCell align="center" className="custom-table-cell">
                 Check-Out
@@ -472,19 +487,39 @@ export default function TimeTrackingTable() {
                     <p> Checked in at: </p>
                     <span className="check-in-time">
                       {dayjs(checkInTimeData.data.checkInTime?.checkIn).format(
-                        "YYYY-MM-DD HH:mm:ss"
+                        "YYYY-MM-DD HH:mm:ssA"
                       )}
                     </span>
+                    {checkInTimeData?.data?.checkInTime?.plannedWorkingHours ? (
+                      <p>
+                        You have decided to work:{" "}
+                        {
+                          checkInTimeData?.data?.checkInTime
+                            ?.plannedWorkingHours
+                        }{" "}
+                        hours
+                      </p>
+                    ) : null}
                   </div>
                 ) : (
                   <Button
                     variant="outlined"
                     onClick={handleCheckIn}
                     className="button-changes"
+                    style={{
+                      padding: "2px 4px",
+                      fontSize: "12px",
+                    }}
                   >
                     Check-In
                   </Button>
                 )}
+              </StyledTableCell>
+
+              <StyledTableCell align="center">
+                {checkInTimeData?.data?.checkInTime?.title ? (
+                  <p>{checkInTimeData?.data?.checkInTime?.title}</p>
+                ) : null}
               </StyledTableCell>
 
               <StyledTableCell align="center">
@@ -521,18 +556,20 @@ export default function TimeTrackingTable() {
               </StyledTableCell>
 
               <StyledTableCell align="center">
-                {addRow.pauseTimers.map((pauseTimer, index) => (
+                {/* {addRow.pauseTimers.map((pauseTimer, index) => (
                   <div key={index}>{pauseTimer.reason}</div>
-                ))}
+                ))} */}
                 <Button
                   variant="outlined"
                   onClick={handlePauseTimer}
                   disabled={
                     checkInTimeData?.data?.checkInTime?.checkIn
                       ? false
-                      : true || checkInTimeData?.data?.checkInTime?.active
+                      : checkInTimeData?.data?.checkInTime?.pauseTimers.some(
+                          (timer) => timer.pauseStatus
+                        )
                       ? true
-                      : false
+                      : true
                   }
                   className="button-changes"
                   style={{
@@ -560,7 +597,11 @@ export default function TimeTrackingTable() {
                 <Button
                   variant="outlined"
                   onClick={handleResumeTimer}
-                  disabled={!timerPaused}
+                  disabled={
+                    checkInTimeData?.data?.checkInTime?.resumeTimer?.pauseStatus
+                      ? true
+                      : true
+                  }
                   className="button-changes"
                   style={{
                     padding: "2px 4px",
@@ -578,11 +619,8 @@ export default function TimeTrackingTable() {
                 {workedHours}
                 {durationError && <p>Error: {durationError.message}</p>}
               </StyledTableCell>
+
               <StyledTableCell align="center">
-                {/* {checkInTimeData?.data?.checkInTime?.notes ? (
-                  checkInTimeData?.data?.checkInTime?.notes
-                ) : ( */}
-                {/* <> */}
                 <TextareaAutosize
                   rowsMin={3}
                   style={{
@@ -591,20 +629,32 @@ export default function TimeTrackingTable() {
                     fontSize: "16px",
                     marginTop: "10px",
                   }}
-                  value={addRow.notes}
-                  onChange={(e) =>
-                    setAddRow({ ...addRow, notes: e.target.value })
-                  }
+                  value={noteText} // Bind the value to 'noteText state'
+                  onChange={(e) => setNoteText(e.target.value)}
                 />
+
                 <IconButton
                   color="primary"
                   aria-label="add Note"
                   onClick={handleAddNotes}
+                  disabled={
+                    checkInTimeData?.data?.checkInTime?.checkIn ? false : true
+                  }
                 >
+                  Add notes
                   <AddCircleIcon />
                 </IconButton>
-                {/* </> */}
-                {/* )} */}
+                {checkInTimeData?.data?.checkInTime?.notes && (
+                  <div>
+                    {checkInTimeData?.data?.checkInTime?.notes.map(
+                      (item, index) => (
+                        <div key={index} className="Notes-cell">
+                          {item}
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
               </StyledTableCell>
             </StyledTableRow>
           </TableBody>

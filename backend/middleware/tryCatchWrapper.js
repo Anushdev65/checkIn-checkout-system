@@ -7,8 +7,9 @@ const tryCatchWrapper = (action) => async (req, res, next) => {
     // If an error occurs, pass it to the next middleware for error handling
     // next(error);
     // throw Error("err")
-    console.log("er",error);
+    console.log("er", error);
   }
 };
 
 export default tryCatchWrapper;
+
