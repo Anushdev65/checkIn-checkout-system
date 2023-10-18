@@ -96,78 +96,6 @@ export const deleteSpecificTimeTracker = tryCatchWrapper(async (req, res) => {
   });
 });
 
-// export const checkIn = tryCatchWrapper(async (req, res) => {
-//   // Get the user ID from the request.
-//   const user = req.body.id;
-
-//   // // Fetch the user's data, including the user ID
-//   const userData = await authService.detailSpecificAuthUserService(user);
-
-//   console.log(userData);
-//   if (!userData) {
-//     throwError({
-//       statusCode: HttpStatus.NOT_FOUND,
-//       message: "User not found",
-//     });
-//   }
-
-//   // Check if the user has already checked in on the current day
-//   let lastTimeTrackingEntry = await timeTrackerService.getLastTimeTracking(
-//     user
-//   );
-
-//   console.log(lastTimeTrackingEntry);
-
-//   // Checking if the last check-in date is the same as the current date (using dayjs)
-//   if (
-//     lastTimeTrackingEntry &&
-//     dayjs(lastTimeTrackingEntry.checkIn).isSame(dayjs(), "day")
-//   ) {
-//     throwError({
-//       statusCode: HttpStatus.BAD_REQUEST,
-//       message: "You've already checked in today. Check-in is not allowed.",
-//     });
-//   }
-
-//   if (lastTimeTrackingEntry && lastTimeTrackingEntry.checkOut) {
-//     // User has already checked out today, they can't check in again
-//     throwError({
-//       statusCode: HttpStatus.BAD_REQUEST,
-//       message: "You've already checked out today. Check in is not allowed.",
-//     });
-//   }
-
-//   // Check if the user has already checked in and is active
-//   if (lastTimeTrackingEntry && lastTimeTrackingEntry.active) {
-//     throwError({
-//       statusCode: HttpStatus.BAD_REQUEST,
-//       message:
-//         "You're already checked in and active. No need to check in again.",
-//     });
-//   }
-
-//   // Updating the existing Time Tracking entry with the current date and time as check-in time
-//   const newEntry = {
-//     user,
-//     checkIn: new Date(),
-//     active: true,
-//   };
-//   // lastTimeTrackingEntry.checkIn = new Date();
-//   // lastTimeTrackingEntry.active = true; // active set to true when checking in
-
-//   const data = await timeTrackerService.addTimeTrackerService({
-//     body: newEntry,
-//   });
-//   console.log(data);
-
-//   successResponseData({
-//     res,
-//     message: "Checked in successfully.",
-//     statusCode: HttpStatus.CREATED,
-//     data,
-//   });
-// });
-
 export const checkIn = tryCatchWrapper(async (req, res) => {
   // Get the user ID from the request.
   let user = req.body.id;
@@ -219,13 +147,18 @@ export const checkIn = tryCatchWrapper(async (req, res) => {
     });
   }
 
+  let parsedPlannedWorkingHours = parseFloat(plannedWorkingHours);
+  if (isNaN(parsedPlannedWorkingHours)) {
+    parsedPlannedWorkingHours = 0;
+  }
+
   // Updating the existing Time Tracking entry with the current date and time as check-in time
   const newEntry = {
     user,
     checkIn: new Date(),
     active: true,
     title: workingTitle,
-    plannedWorkingHours: parseFloat(plannedWorkingHours),
+    plannedWorkingHours: parsedPlannedWorkingHours,
   };
   // lastTimeTrackingEntry.checkIn = new Date();
   // lastTimeTrackingEntry.active = true; // active set to true when checking in

@@ -1,4 +1,3 @@
-// Import necessary modules and services
 import { HttpStatus } from "../constant/constant.js";
 import successResponseData from "../helper/successResponseData.js";
 import tryCatchWrapper from "../middleware/tryCatchWrapper.js";
@@ -43,7 +42,7 @@ export const editTrackingLog = tryCatchWrapper(async (req, res) => {
 });
 
 // Controller function to retrieve a specific tracking Log entry by ID
-export const detailSpecifictrackingLog = tryCatchWrapper(async (req, res) => {
+export const detailSpecificTrackingLog = tryCatchWrapper(async (req, res) => {
   // Extract ID parameter
   let id = req.params.id;
 
@@ -60,7 +59,7 @@ export const detailSpecifictrackingLog = tryCatchWrapper(async (req, res) => {
 });
 
 // Controller function to retrieve all tracking Log entries
-export const detailAlltrackingLog = tryCatchWrapper(async (req, res, next) => {
+export const detailAllTrackingLog = tryCatchWrapper(async (req, res, next) => {
   // Initialize a 'find' object for querying all tracking Log entries
   let find = {};
 
@@ -72,7 +71,7 @@ export const detailAlltrackingLog = tryCatchWrapper(async (req, res, next) => {
 });
 
 // Controller function to delete a specific tracking Log entry by ID
-export const deleteSpecifictrackingLog = tryCatchWrapper(async (req, res) => {
+export const deleteSpecificTrackingLog = tryCatchWrapper(async (req, res) => {
   // Extract ID parameter
   let id = req.params.id;
 

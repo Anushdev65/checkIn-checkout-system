@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import UserLogin from "./pages/UserLogin";
 import SignUp from "./pages/UserRegister";
 import ProtectedRoute from "./utils/ProtectedRoute";
+import TrackingLog from "./pages/TrackingLog";
 import "./App.css";
 
 function App() {
@@ -10,6 +11,7 @@ function App() {
     <Routes>
       <Route element={<ProtectedRoute />}>
         <Route path="/home" element={<Home />} />
+        <Route path="/home/tracking/log" element={<TrackingLog />} />
       </Route>
       {/* Register route */}
       <Route path="/register" element={<SignUp />} />

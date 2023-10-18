@@ -34,10 +34,12 @@ const navData = [
   {
     name: "Home",
     icon: <FoodBankOutlinedIcon />,
+    link: "/home"
   },
   {
     name: "Track Logs",
     icon: <FeedbackIcon />,
+    link: "/home/tracking/log",
   },
   {
     name: "My Profile",

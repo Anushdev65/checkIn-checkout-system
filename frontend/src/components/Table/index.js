@@ -197,14 +197,31 @@ export default function TimeTrackingTable() {
     }
   }, [checkInTimeData]);
 
-  // useEffect(() => {
-  //   if (checkInTimeData && checkInTimeData.checkIn) {
-  //     // If check-in time data exists, update the state only if it's different
-  //     if (addRow.checkIn !== checkInTimeData.checkIn) {
-  //       setAddRow({ ...addRow, checkIn: checkInTimeData.checkIn });
-  //     }
-  //   }
-  // }, [checkInTimeData]);
+  // function to enable and disable the checkOut button according to plannedWorkingHours
+  const disableByPlannedHours = () => {
+    if (!checkInTimeData?.data?.checkInTime?.checkIn) {
+      // Disable the button if there is no check-in
+      return true;
+    }
+
+    if (checkInTimeData?.data?.checkInTime?.plannedWorkingHours) {
+      const plannedHours = checkInTimeData.data.checkInTime.plannedWorkingHours;
+      const checkInTime = checkInTimeData.data.checkInTime.checkIn;
+      const currentTime = new Date();
+
+      // Calculate the time difference between check-in and the current time
+      const timeDifference = currentTime - new Date(checkInTime);
+
+      // Convert time difference from milliseconds to minutes
+      const timeDifferenceInMinutes = timeDifference / (1000 * 60);
+
+      // Disable the button if the time difference is less than planned hours
+      return timeDifferenceInMinutes < plannedHours * 60;
+    }
+
+    // Enable the button by default if the conditions are not met
+    return false;
+  };
 
   const handleAddTimeTracker = async () => {
     try {
@@ -285,12 +302,12 @@ export default function TimeTrackingTable() {
 
       openCheckInModal();
 
-      if (response.error) {
-        console.error("Check-In Error", response.error);
-      } else {
-        console.log("Check-In successful", response.data);
-        // Handle successful check-in
-      }
+      // if (response.error) {
+      //   console.error("Check-In Error", response.error);
+      // } else {
+      //   console.log("Check-In successful", response.data);
+      //   // Handle successful check-in
+      // }
 
       // clears the timer when the component unmounts
       return () => clearInterval(timer);
@@ -542,9 +559,7 @@ export default function TimeTrackingTable() {
                     variant="outlined"
                     onClick={handleCheckout}
                     className="button-changes"
-                    disabled={
-                      checkInTimeData?.data?.checkInTime?.checkIn ? false : true
-                    }
+                    disabled={disableByPlannedHours()}
                     style={{
                       padding: "2px 4px",
                       fontSize: "12px",
@@ -563,12 +578,12 @@ export default function TimeTrackingTable() {
                   variant="outlined"
                   onClick={handlePauseTimer}
                   disabled={
-                    checkInTimeData?.data?.checkInTime?.checkIn
-                      ? false
-                      : checkInTimeData?.data?.checkInTime?.pauseTimers.some(
-                          (timer) => timer.pauseStatus
-                        )
+                    checkInTimeData?.data?.checkInTime?.checkOut
                       ? true
+                      : true && !checkInTimeData?.data?.checkInTime?.pauseStatus
+                      ? checkInTimeData?.data?.checkInTime?.checkIn
+                        ? false
+                        : true
                       : true
                   }
                   className="button-changes"
@@ -580,12 +595,18 @@ export default function TimeTrackingTable() {
                   Pause Timer
                 </Button>
               </StyledTableCell>
-
+              {console.log(
+                !checkInTimeData?.data?.checkInTime?.pauseStatus
+                  ? checkInTimeData?.data?.checkInTime?.checkIn
+                    ? false
+                    : true
+                  : false
+              )}
               <StyledTableCell align="center">
                 <div className="reason-container">
                   {checkInTimeData?.data?.checkInTime?.pauseTimers?.map(
                     (item, index) => (
-                      <div key={index} className="reason-cell">
+                      <div key={index} className="fetched-text">
                         {item?.reason}
                       </div>
                     )
@@ -598,9 +619,10 @@ export default function TimeTrackingTable() {
                   variant="outlined"
                   onClick={handleResumeTimer}
                   disabled={
-                    checkInTimeData?.data?.checkInTime?.resumeTimer?.pauseStatus
+                    !checkInTimeData?.data?.checkInTime?.pauseStatus ||
+                    checkInTimeData?.data?.checkInTime?.checkOut // Disable when paused or checked out
                       ? true
-                      : true
+                      : false
                   }
                   className="button-changes"
                   style={{
@@ -615,9 +637,17 @@ export default function TimeTrackingTable() {
               {/* <StyledTableCell align="center">
               {addRow.pausedDuration}
             </StyledTableCell> */}
+
+              {/* Displaying calculated worked hours */}
               <StyledTableCell align="center">
-                {workedHours}
-                {durationError && <p>Error: {durationError.message}</p>}
+                {checkInTimeData?.data?.checkInTime?.plannedWorkingHours ? (
+                  `Planned Working : ${checkInTimeData.data.checkInTime.plannedWorkingHours} hours`
+                ) : (
+                  <>
+                    {workedHours}
+                    {durationError && <p>Error: {durationError.message}</p>}
+                  </>
+                )}
               </StyledTableCell>
 
               <StyledTableCell align="center">
@@ -638,7 +668,10 @@ export default function TimeTrackingTable() {
                   aria-label="add Note"
                   onClick={handleAddNotes}
                   disabled={
-                    checkInTimeData?.data?.checkInTime?.checkIn ? false : true
+                    !checkInTimeData?.data?.checkInTime?.checkIn ||
+                    checkInTimeData?.data?.checkInTime?.checkOut // Disable when paused or checked out
+                      ? true
+                      : false
                   }
                 >
                   Add notes

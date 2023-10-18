@@ -40,6 +40,7 @@ let timeTrackingSchema = Schema(
 
     pauseStatus: {
       type: Boolean,
+      default: false,
     },
     active: {
       type: Boolean,

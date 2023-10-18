@@ -7,15 +7,14 @@ const trackingLogRouter = Router();
 trackingLogRouter
   .route("/")
   .post(trackingLogController.addTrackingLog)
-  .get(trackingLogController.detailAlltrackingLog, sortFilterPagination);
+  .get(trackingLogController.detailAllTrackingLog, sortFilterPagination);
 
 trackingLogRouter
   .route("/:id")
   .put(trackingLogController.editTrackingLog)
-  .delete(trackingLogController.deleteSpecifictrackingLog);
+  .delete(trackingLogController.deleteSpecificTrackingLog)
+  .get(trackingLogController.detailSpecificTrackingLog);
 
-trackingLogRouter
-  .route("/:userId")
-  .get(trackingLogController.detailSpecifictrackingLog);
+
 
 export default trackingLogRouter;

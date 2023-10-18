@@ -28,7 +28,7 @@ export const timeTrackerApi = createApi({
         };
       },
     }),
-    DetailAllTimeTracker: builder.query({
+    detailAllTimeTracker: builder.query({
       query: () => {
         return {
           url: `/time/tracker`,
@@ -47,7 +47,7 @@ export const timeTrackerApi = createApi({
       },
     }),
 
-    DetailByIdTimeTracker: builder.query({
+    detailByIdTimeTracker: builder.query({
       query: ({ id }) => {
         return {
           url: `/time/tracker/${id}`,
@@ -103,6 +103,7 @@ export const timeTrackerApi = createApi({
           body: body,
         };
       },
+      invalidatesTags: ["CheckIn"],
     }),
     pauseTimer: builder.mutation({
       query: ({ body }) => {
@@ -132,7 +133,7 @@ export const timeTrackerApi = createApi({
           body: body,
         };
       },
-      invalidatesTags: ["CheckIn"]
+      invalidatesTags: ["CheckIn"],
     }),
 
     saveCheckInTime: builder.query({
@@ -145,8 +146,6 @@ export const timeTrackerApi = createApi({
       providesTags: ["CheckIn"],
     }),
   }),
-
-  
 });
 
 export const {
