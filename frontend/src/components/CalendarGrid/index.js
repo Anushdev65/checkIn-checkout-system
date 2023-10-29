@@ -11,17 +11,18 @@ function Calendar() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleDateClick = (arg) => {
-    setSelectedDate(arg.date);
-    openModal();
-  };
-
   const openModal = () => {
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
+  };
+
+  const handleDateClick = (props) => {
+    console.log("here", props);
+    setSelectedDate(props.dateStr);
+    openModal();
   };
 
   return (
@@ -37,8 +38,9 @@ function Calendar() {
         height={"90vh"}
         dateClick={handleDateClick}
       />
-      <Modal isOpen={isModalOpen} onClose={closeModal}>
-        {selectedDate && <LogTable date={selectedDate} />}
+      {/* <button onClick={openModal}> Modal</button> */}
+      <Modal open={isModalOpen} onClose={closeModal}>
+        <LogTable selectedDate={selectedDate} />
       </Modal>
     </div>
   );

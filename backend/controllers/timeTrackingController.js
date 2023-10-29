@@ -5,8 +5,8 @@ import tryCatchWrapper from "../middleware/tryCatchWrapper.js";
 import { authService, timeTrackerService } from "../services/index.js";
 import asyncHandler from "express-async-handler";
 import {
-  getLastTimeTracking,
   detailSpecificTimeTrackerService,
+  getLastTimeTrackingByDate,
 } from "../services/timeTrackingServices.js";
 import dayjs from "dayjs";
 import { throwError } from "../utils/throwError.js";
@@ -113,9 +113,11 @@ export const checkIn = tryCatchWrapper(async (req, res) => {
   }
 
   // Check if the user has already checked in on the current day
-  let lastTimeTrackingEntry = await timeTrackerService.getLastTimeTracking(
-    user
-  );
+  let lastTimeTrackingEntry =
+    await timeTrackerService.getLastTimeTrackingByDate(
+      user,
+      dayjs().format("YYYY-MM-DD")
+    );
 
   console.log(lastTimeTrackingEntry);
 
@@ -183,9 +185,11 @@ export const checkOut = tryCatchWrapper(async (req, res) => {
   let user = req.body.id;
 
   // recent Time Tracking entry for the user
-  let lastTimeTrackingEntry = await timeTrackerService.getLastTimeTracking(
-    user
-  );
+  let lastTimeTrackingEntry =
+    await timeTrackerService.getLastTimeTrackingByDate(
+      user,
+      dayjs().format("YYYY-MM-DD")
+    );
   // Checks if the user has previously checked in
   if (!lastTimeTrackingEntry || !lastTimeTrackingEntry.checkIn) {
     return res.status(HttpStatus.BAD_REQUEST).json({
@@ -404,16 +408,28 @@ export const calculatePausedDuration = tryCatchWrapper(async (req, res) => {
 
 export const getCheckInTime = tryCatchWrapper(async (req, res) => {
   const timeTrackingId = req.params.id;
-  // console.log(timeTrackingId, "jj");
+  // const createdAt = req.body.createdAt;
+
+  //   let userId = req.params.userId;
+
+  //   const timeTrackingId = await TimeTracker.find({
+  //     user: userId,
+  //     createdAt: createdAt,
+  //   });
+
   // Retrieve the user's most recent check-in time
 
-  const lastCheckInTimeEntry = await getLastTimeTracking(timeTrackingId);
+  const lastCheckInTimeEntry = await getLastTimeTrackingByDate(
+    timeTrackingId
+    // createdAt
+  );
 
   console.log(
     "d",
     JSON.parse(JSON.stringify(lastCheckInTimeEntry)),
     timeTrackingId,
-    lastCheckInTimeEntry?.checkIn
+    lastCheckInTimeEntry?.checkIn,
+    lastCheckInTimeEntry?.title
   );
 
   if (lastCheckInTimeEntry && lastCheckInTimeEntry.checkIn) {

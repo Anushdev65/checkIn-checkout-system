@@ -1,7 +1,7 @@
-import NavBar from "../../components/NavBar";
-import "../../styles/homelayout.css";
-import Table from "../../components/Table";
 import Clock from "../../components/Clock";
+import NavBar from "../../components/NavBar";
+import Table from "../../components/Table";
+import "../../styles/homelayout.css";
 function HomeLayout() {
   return (
     <main className="main-body">

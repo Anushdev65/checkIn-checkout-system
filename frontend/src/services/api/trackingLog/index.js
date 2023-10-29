@@ -15,6 +15,7 @@ export const trackingLogApi = createApi({
       return headers;
     },
   }),
+  tagTypes: ["detailAllTrackingLog"],
 
   endpoints: (builder) => ({
     addTrackingLog: builder.mutation({
@@ -34,6 +35,7 @@ export const trackingLogApi = createApi({
           method: "GET",
         };
       },
+      providesTags: ["detailAllTrackingLog"],
     }),
 
     editTrackingLog: builder.mutation({

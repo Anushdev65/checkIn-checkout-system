@@ -12,7 +12,9 @@ import dayjs from "dayjs";
 import { useEffect } from "react";
 import { useSaveCheckInTimeQuery } from "../../services/api/timeTracking";
 import { useAddTrackingLogMutation } from "../../services/api/trackingLog";
+import { useLazyDetailAllTrackingLogQuery } from "../../services/api/trackingLog";
 import { getUserInfo } from "../../localStorage/localStorage";
+import { useQueryClient } from "react-query";
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -34,30 +36,41 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-export default function LogTable() {
+export default function LogTable({ checkInTimeData }) {
+  const queryClient = useQueryClient();
+  //Using the useLazyDetailAllTrackingLogQuery hook to fetch log entries
+
+  const {
+    data: logData,
+    error: logError,
+    isLoading: logIsLoading,
+  } = useLazyDetailAllTrackingLogQuery();
+
   const [addDate, { data, isSucess, error, isLoading }] =
     useAddTrackingLogMutation();
 
   const { user } = getUserInfo();
   const userId = user?._id;
 
-  const { data: checkInTimeData, isLoading: checkInLoading } =
-    useSaveCheckInTimeQuery(userId);
+  // const { data: checkInTimeData, isLoading: checkInLoading } =
+  //   useSaveCheckInTimeQuery(userId);
 
   // A function to create a log entry with the date as the request payLoad
   const createLogEntry = async (date) => {
     try {
       const requestBody = {
         user: userId,
-        timeTracker: checkInTimeData.data.checkInTime?._id,
+        timeTracker: checkInTimeData.data.checkInTime,
         date: date,
       };
       const response = await addDate(requestBody);
+      console.log(requestBody);
 
       if (response.error) {
         console.error("Error creating log entry", response.error);
       } else {
-        console.elog("Log entry created successfully:", response.data);
+        console.log("Log entry created successfully:", response.data);
+        queryClient.invalidateQueries("detailAllTrackingLog");
       }
     } catch (error) {
       console.error("Error creating log entry", error);
@@ -93,7 +106,7 @@ export default function LogTable() {
         <TableBody>
           <StyledTableRow>
             <StyledTableCell align="center">1</StyledTableCell>
-          <StyledTableCell aligh="center">{formattedDate}</StyledTableCell>
+            <StyledTableCell aligh="center">{formattedDate}</StyledTableCell>
             <StyledTableCell align="center">
               {checkInTimeData?.data?.checkInTime?.title}
             </StyledTableCell>

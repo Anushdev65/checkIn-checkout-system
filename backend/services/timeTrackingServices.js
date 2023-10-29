@@ -38,28 +38,14 @@ export const editSpecificTimeTrackerService = async ({ id, body }) =>
     runValidators: true,
   });
 
-// export const getLastTimeTracking = async (timeTrackingId, userId) => {
-//   // Creating a filter object to find the most recent Time Tracking entry
-
-//   const filter = {
-//     _id: mongoose.Types.ObjectId(timeTrackingId),
-//     user: userId,
-//   };
-
-//   // Find the most recent Time Tracking entry by its _id (ObjectId)
-//   const lastTimeTrackingEntry = await TimeTracker.findById(filter)
-//     .sort({ checkIn: -1 }) //Sort in desending order to get the most recent entry
-//     .exec();
-
-//   return lastTimeTrackingEntry;
-// };
-export const getLastTimeTracking = async (userId) => {
+export const getLastTimeTrackingByDate = async (userId, selectedDate) => {
   // Find the most recent Time Tracking entry for the user
   const lastTimeTrackingEntry = await TimeTracker.findOne({
     user: userId,
+    // createdAt: selectedDate,
     checkIn: { $ne: null }, // Ensure there's a check-in timestamp
   })
-    .sort({ checkIn: -1 }) // Sort in descending order to get the most recent entry
+    .sort({ checkIn: -1 }) // Sort in descending order to get the most recent checkIn
     .exec();
 
   return lastTimeTrackingEntry;

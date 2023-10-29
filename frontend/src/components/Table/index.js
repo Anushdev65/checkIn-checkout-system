@@ -68,8 +68,15 @@ function calculateDuration(checkIn, checkOut) {
 }
 
 export default function TimeTrackingTable() {
+  // const [duration, setDuration] = useState(null);
+  // const [ loading, setLoading ] = useState(false)
+  // const [durationError, setDurationError] = useState(null)
+
+  // const { mutate: calculateDuration } = useDurationMutation()
+
   const { user } = getUserInfo();
   const userId = user?._id;
+  // const selectedDate = createdAt;
 
   // const [addRow, setAddRow] = useState({
   //   checkIn: "",
@@ -222,6 +229,28 @@ export default function TimeTrackingTable() {
     // Enable the button by default if the conditions are not met
     return false;
   };
+
+  const resetDataForNewDay = () => {
+    setCheckedIn(false);
+  };
+
+  useEffect(() => {
+    if (checkInTimeData?.data?.checkInTime?.checkIn) {
+      // Get the check-in date
+      const checkInDate = dayjs(
+        checkInTimeData.data.checkInTime.checkIn
+      ).format("YYYY-MM-DD");
+
+      // Get the current date
+      const currentDate = dayjs().format("YYYY-MM-DD");
+
+      // Checks if a new day has started
+      if (checkInDate !== currentDate) {
+        // Reset data for a new day
+        resetDataForNewDay();
+      }
+    }
+  }, [checkInTimeData]);
 
   const handleAddTimeTracker = async () => {
     try {
@@ -410,6 +439,21 @@ export default function TimeTrackingTable() {
       console.error("Error while resuming time", error);
     }
   };
+
+  // const handleCalculateDuration = async (timeTrackingId) => {
+  //   try {
+  //     setLoading(true);
+  //     const response = await calculateDuration({ timeTrackingId });
+
+  //     // Handle success
+  //     setDuration(response.data.durationInSeconds);
+  //   } catch (error) {
+  //     // Handle error
+  //     setDurationError(error.message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const handleAddNotes = async () => {
     try {
