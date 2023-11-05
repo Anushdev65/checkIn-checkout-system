@@ -5,25 +5,25 @@ import SignUp from "./pages/UserRegister";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import TrackingLog from "./pages/TrackingLog";
 import "./App.css";
-import { QueryClient, QueryClientProvider } from 'react-query';
+import LogDetailPage from "./pages/logDetail";
+// import { QueryClient, QueryClientProvider } from "react-query";
 
-const queryClient = new QueryClient();
+// const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Routes>
-        <Route element={<ProtectedRoute />}>
-          <Route path="/home" element={<Home />} />
-          <Route path="/home/tracking/log" element={<TrackingLog />} />
-        </Route>
-        {/* Register route */}
-        <Route path="/register" element={<SignUp />} />
+    <Routes>
+      <Route element={<ProtectedRoute />}>
+        <Route path="/home" element={<Home />} />
+        <Route path="/home/tracking/log" element={<TrackingLog />} />
+        <Route path="log/:date" element={<LogDetailPage />} />
+      </Route>
+      {/* Register route */}
+      <Route path="/register" element={<SignUp />} />
 
-        {/* Login route */}
-        <Route path="/login" element={<UserLogin />} />
-      </Routes>
-    </QueryClientProvider>
+      {/* Login route */}
+      <Route path="/login" element={<UserLogin />} />
+    </Routes>
   );
 }
 

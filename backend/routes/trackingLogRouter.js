@@ -15,6 +15,4 @@ trackingLogRouter
   .delete(trackingLogController.deleteSpecificTrackingLog)
   .get(trackingLogController.detailSpecificTrackingLog);
 
-
-
 export default trackingLogRouter;

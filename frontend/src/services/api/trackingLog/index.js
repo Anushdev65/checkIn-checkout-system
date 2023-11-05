@@ -15,17 +15,18 @@ export const trackingLogApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["detailAllTrackingLog"],
+  tagTypes: ["detailTrackingLog"],
 
   endpoints: (builder) => ({
     addTrackingLog: builder.mutation({
-      query: (body) => {
+      query: ({ body }) => {
         return {
           url: `/tracking/log`,
           method: "POST",
           body: body,
         };
       },
+      invalidatesTags: ["detailTrackingLog"],
     }),
 
     detailAllTrackingLog: builder.query({
@@ -35,7 +36,7 @@ export const trackingLogApi = createApi({
           method: "GET",
         };
       },
-      providesTags: ["detailAllTrackingLog"],
+      providesTags: ["detailTrackingLog"],
     }),
 
     editTrackingLog: builder.mutation({
@@ -71,8 +72,8 @@ export const trackingLogApi = createApi({
 
 export const {
   useAddTrackingLogMutation,
-  useLazyDetailAllTrackingLogQuery,
+  useDetailAllTrackingLogQuery,
   useEditTrackingLogMutation,
-  useLazyDetailSpecificTrackingLogQuery,
+  useDetailSpecificTrackingLogQuery,
   useDeleteTrackingLogMutation,
 } = trackingLogApi;

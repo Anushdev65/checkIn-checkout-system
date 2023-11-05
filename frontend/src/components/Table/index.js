@@ -35,9 +35,7 @@ import PauseTimerDialog from "../Dialog";
 import CheckInPop from "../PopupModal";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-// const localizedFormat = require("dayjs/plugin/localizedFormat");
-
-// dayjs.extend(localizedFormat);
+import { useQueryClient } from "react-query";
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -68,25 +66,8 @@ function calculateDuration(checkIn, checkOut) {
 }
 
 export default function TimeTrackingTable() {
-  // const [duration, setDuration] = useState(null);
-  // const [ loading, setLoading ] = useState(false)
-  // const [durationError, setDurationError] = useState(null)
-
-  // const { mutate: calculateDuration } = useDurationMutation()
-
   const { user } = getUserInfo();
   const userId = user?._id;
-  // const selectedDate = createdAt;
-
-  // const [addRow, setAddRow] = useState({
-  //   checkIn: "",
-  //   checkOut: "",
-  //   pauseTimers: [],
-  //   resumeTimer: [],
-  //   pausedDuration: "",
-  //   duration: "",
-  //   notes: [],
-  // });
 
   const [timerPaused, setTimerPaused] = useState(true);
   const [resumeDisabled, setResumeDisabled] = useState(true);
@@ -230,28 +211,6 @@ export default function TimeTrackingTable() {
     return false;
   };
 
-  const resetDataForNewDay = () => {
-    setCheckedIn(false);
-  };
-
-  useEffect(() => {
-    if (checkInTimeData?.data?.checkInTime?.checkIn) {
-      // Get the check-in date
-      const checkInDate = dayjs(
-        checkInTimeData.data.checkInTime.checkIn
-      ).format("YYYY-MM-DD");
-
-      // Get the current date
-      const currentDate = dayjs().format("YYYY-MM-DD");
-
-      // Checks if a new day has started
-      if (checkInDate !== currentDate) {
-        // Reset data for a new day
-        resetDataForNewDay();
-      }
-    }
-  }, [checkInTimeData]);
-
   const handleAddTimeTracker = async () => {
     try {
       const requestBody = {};
@@ -331,13 +290,6 @@ export default function TimeTrackingTable() {
 
       openCheckInModal();
 
-      // if (response.error) {
-      //   console.error("Check-In Error", response.error);
-      // } else {
-      //   console.log("Check-In successful", response.data);
-      //   // Handle successful check-in
-      // }
-
       // clears the timer when the component unmounts
       return () => clearInterval(timer);
     } catch (error) {
@@ -352,40 +304,20 @@ export default function TimeTrackingTable() {
         checkOut: currentTime.format("hh:mm.ss-A"),
       };
 
-      // setAddRow({
-      //   ...addRow,
-      //   checkOut: currentTime.format("hh:mm.ss-A"),
-      // });
-
       const response = await userCheckOut({ body: requestBody });
 
       if (response.error) {
         console.error("Error while checking out", response.error);
       } else {
         console.log("sucessfully checkedOut", response.data);
-        // Handle successful check-in here
       }
+      // CreateLogEntry(new Date());
     } catch (error) {
       console.error("Error while checking out", error);
     }
   };
 
   const handlePauseTimer = async () => {
-    // const requestBody = {
-    //   timeTrackingId: timeTrackingId,
-    //   reason: reason,
-    // };
-
-    // if (addRow.checkIn && !addRow.pauseTimer) {
-    //   setAddRow({
-    //     ...addRow,
-    //     pauseTimer: currentTime.format("HH:mm:ss A"),
-    //   });
-    // }
-    // const response = await pauseTimer({ body: requestBody });
-
-    // setTimerPaused(true);
-    // setResumeDisabled(false);
     openPauseDialog();
   };
 
@@ -428,32 +360,11 @@ export default function TimeTrackingTable() {
         console.error("Error while resuming time", response.error);
       } else {
         console.log("Successfully resumed time", response.data);
-
-        // setAddRow((prevRow) => ({
-        //   ...prevRow,
-        //   pauseTimer: null,
-        //   pausedDuration: 0,
-        // }));
       }
     } catch (error) {
       console.error("Error while resuming time", error);
     }
   };
-
-  // const handleCalculateDuration = async (timeTrackingId) => {
-  //   try {
-  //     setLoading(true);
-  //     const response = await calculateDuration({ timeTrackingId });
-
-  //     // Handle success
-  //     setDuration(response.data.durationInSeconds);
-  //   } catch (error) {
-  //     // Handle error
-  //     setDurationError(error.message);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const handleAddNotes = async () => {
     try {
@@ -497,6 +408,47 @@ export default function TimeTrackingTable() {
     } catch (error) {
       console.error("Error calculating paused duration", error);
     }
+  };
+
+  // useEffect(() => {
+  //   startRefreshInterval();
+  // }, []);
+
+  // Time threshold for resetting the table
+  const resetTimeThreshold = 10000;
+  // State variable to store the elapsed time
+  const [elapsedTime, setElapsedTime] = useState(0);
+
+  // Function to calculate the elapsed time based on check-out time
+  const calculateElapsedTime = (checkOutTime) => {
+    if (checkOutTime) {
+      const lastCheckOutTime = new Date(checkOutTime);
+      const currentTime = new Date();
+      const elapsedTime = currentTime - lastCheckOutTime;
+      console.log("Elapsed time:", elapsedTime);
+      return elapsedTime;
+    }
+    return 0;
+  };
+
+  useEffect(() => {
+    // Calculate elapsed time and update the state based on check-out time in checkInTimeData
+    const checkOutTime = checkInTimeData?.data?.checkInTime?.checkOut;
+    const elapsed = calculateElapsedTime(checkOutTime);
+    console.log("Elapsed time (useEffect):", elapsed);
+    setElapsedTime(elapsed);
+  }, [checkInTimeData]);
+
+  // Function to check if the row should show buttons
+  const shouldShowButtons = () => {
+    return elapsedTime >= resetTimeThreshold;
+  };
+
+  // Function to reset the data
+  const resetRowData = () => {
+    console.log("Resetting row data");
+
+    setElapsedTime(0);
   };
 
   return (
@@ -565,7 +517,10 @@ export default function TimeTrackingTable() {
                 ) : (
                   <Button
                     variant="outlined"
-                    onClick={handleCheckIn}
+                    onClick={() => {
+                      handleCheckIn();
+                      resetRowData();
+                    }}
                     className="button-changes"
                     style={{
                       padding: "2px 4px",
@@ -586,13 +541,6 @@ export default function TimeTrackingTable() {
               <StyledTableCell align="center">
                 {console.log(checkedIn)}
                 {checkInTimeData?.data?.checkInTime?.checkOut ? (
-                  // addRow.checkOut ? (
-                  //   addRow.checkOut
-                  // ) : (
-                  //   <Button variant="outlined" onClick={handleCheckout}>
-                  //     Check-Out
-                  //   </Button>
-                  // )
                   <span>
                     {dayjs(checkInTimeData?.data?.checkInTime?.checkOut).format(
                       "YYYY-MM-DD HH:mm:ss"
@@ -601,7 +549,10 @@ export default function TimeTrackingTable() {
                 ) : (
                   <Button
                     variant="outlined"
-                    onClick={handleCheckout}
+                    onClick={() => {
+                      handleCheckout();
+                      resetRowData();
+                    }}
                     className="button-changes"
                     disabled={disableByPlannedHours()}
                     style={{
@@ -615,9 +566,6 @@ export default function TimeTrackingTable() {
               </StyledTableCell>
 
               <StyledTableCell align="center">
-                {/* {addRow.pauseTimers.map((pauseTimer, index) => (
-                  <div key={index}>{pauseTimer.reason}</div>
-                ))} */}
                 <Button
                   variant="outlined"
                   onClick={handlePauseTimer}
@@ -706,11 +654,13 @@ export default function TimeTrackingTable() {
                   value={noteText} // Bind the value to 'noteText state'
                   onChange={(e) => setNoteText(e.target.value)}
                 />
-
                 <IconButton
                   color="primary"
                   aria-label="add Note"
-                  onClick={handleAddNotes}
+                  onClick={() => {
+                    handleAddNotes();
+                    resetRowData();
+                  }}
                   disabled={
                     !checkInTimeData?.data?.checkInTime?.checkIn ||
                     checkInTimeData?.data?.checkInTime?.checkOut // Disable when paused or checked out

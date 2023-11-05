@@ -1,20 +1,18 @@
 import { HttpStatus } from "../constant/constant.js";
 import successResponseData from "../helper/successResponseData.js";
 import tryCatchWrapper from "../middleware/tryCatchWrapper.js";
-import { trackingLogService } from "../services/index.js";
-import { TimeTracker } from "../schemasModel/model.js";
+import { authService, trackingLogService } from "../services/index.js";
+import { TimeTracker, TrackingLog } from "../schemasModel/model.js";
 
 // Controller function to add a new tracking Log entry
 export const addTrackingLog = tryCatchWrapper(async (req, res) => {
   // Extract request body
   let body = { ...req.body };
 
-  // Call the service function to add a tracking Log
-  let data = await trackingLogService.addTrackingLogService({ body });
+  let data = await trackingLogService.addTrackingLogService({
+    body: body,
+  });
 
-  console.log(data, "lesgooooooooo");
-
-  // Send a success response
   successResponseData({
     res,
     message: "Time tracked successfully.",
@@ -90,12 +88,6 @@ export const deleteSpecificTrackingLog = tryCatchWrapper(async (req, res) => {
   });
 });
 
-// export const trackingLog = tryCatchWrapper(async (req, res) => {
-//   let userId = req.params.userId;
-
-//   const timeTrackingId = await TimeTracker.find({
-//     user: userId,
-//     createdAt: createdAt,
-//   });
-//   console.log(time);
-// });
+export const getCreateLog = tryCatchWrapper(async (req, res) => {
+  let id = req.params.id;
+});

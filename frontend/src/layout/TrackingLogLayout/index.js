@@ -4,16 +4,14 @@ import LogTable from "../../components/LogTable";
 import Calender from "../../components/CalendarGrid";
 import { useSaveCheckInTimeQuery } from "../../services/api/timeTracking";
 import { getUserInfo } from "../../localStorage/localStorage";
-
+import LogCard from "../../components/LogCard";
 function TrackingLogLayout() {
-
-  
   const { user } = getUserInfo();
   const userId = user?._id;
 
   const { data: checkInTimeData, isLoading: checkInLoading } =
-  useSaveCheckInTimeQuery(userId);
-  
+    useSaveCheckInTimeQuery(userId);
+
   return (
     <main className="main-body">
       <div className="content-wrapper">
@@ -23,9 +21,10 @@ function TrackingLogLayout() {
             <Clock />
           </div>
           <div>
-            <Calender />
+            <Calender checkInTimeData={checkInTimeData} />
           </div>
-          <LogTable checkInTimeData={checkInTimeData} />
+          {/* <LogTable checkInTimeData={checkInTimeData} /> */}
+          {/* <LogCard /> */}
         </div>
       </div>
     </main>

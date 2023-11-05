@@ -1,21 +1,23 @@
 import { Schema } from "mongoose";
 
-const trackingLog = Schema({
-  user: {
-    type: Schema.Types.ObjectId,
-    ref: "Auth",
-    required: true
+const trackingLog = Schema(
+  {
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "Auth",
+    },
+
+    timeTracker: {
+      type: Schema.Types.ObjectId,
+      ref: "TimeTracker",
+    },
+
+    date: {
+      type: Date,
+    },
   },
 
-  timeTracker: {
-    type: Schema.Types.ObjectId,
-    ref: "TimeTracker",
-  },
-
-  date: {
-    type: Date,
-    required: true,
-  },
-});
+  { timestamps: true }
+);
 
 export default trackingLog;

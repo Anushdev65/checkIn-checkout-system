@@ -1,25 +1,16 @@
 import { TrackingLog } from "../schemasModel/model.js";
 import { TimeTracker } from "../schemasModel/model.js";
 
-// Create a new tracking Log entry
 export const addTrackingLogService = async ({ body }) => {
-  const timeTrackerId = body.timeTracker;
-  const timeTrackerData = await TimeTracker.findById(timeTrackerId);
-
-  if (!timeTrackerData) {
-    // Handle the case where the TimeTracker object is not found.
-    // You can return an error response or handle it according to your requirements.
-    return null;
+  try {
+    const result = await TrackingLog.create(body);
+    // Handle success
+    return result;
+  } catch (error) {
+    // Handle error and send a response
+    console.error("Error creating tracking log:", error);
+    throw error;
   }
-
-  // Include the data from the TimeTracker object in the trackingLog entry.
-  const trackingLogEntry = {
-    user: body.user,
-    timeTracker: timeTrackerData, // Include the entire TimeTracker object
-    date: body.date,
-  };
-
-  return TrackingLog.create(trackingLogEntry);
 };
 
 // Create multiple tracking Log entries at once
@@ -33,19 +24,14 @@ export const detailAllTrackingLogService = async ({
   limit = "",
   skip = "",
   select = "",
-  date = null,
-}) => {
-  if (date) {
-    find.date = new Date(date);
-  }
-  return TrackingLog.find(find)
+}) =>
+  TrackingLog.find(find)
     .sort(sort)
     .limit(limit)
     .skip(skip)
     .select(select)
     .populate("user")
     .populate("timeTracker");
-};
 
 // Delete a specific tracking Log entry by ID
 export const deleteSpecificTrackingLogService = async ({ id }) =>
