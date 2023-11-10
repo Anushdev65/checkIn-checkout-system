@@ -1,0 +1,17 @@
+.myprofile {
+  display: flex;
+  align-items: center;
+
+  white-space: nowrap;
+  max-width: 100px;
+  margin: 0 auto;
+  width: 100%;
+  padding-right: 600px;
+}
+
+.button-btn {
+  max-width: 400px;
+  position: sticky;
+  left: 345px;
+  top: -30px;
+}

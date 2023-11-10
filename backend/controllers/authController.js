@@ -31,6 +31,9 @@ export const addAuthUser = tryCatchWrapper(async (req, res) => {
       body: {
         email: body.email,
         password: passHashedPassword,
+        firstName: body.firstName,
+        lastName: body.lastName,
+        phoneNumber: body.phoneNumber,
       },
     });
 
@@ -83,6 +86,8 @@ export let loginUser = tryCatchWrapper(async (req, res) => {
 
       await tokenService.createTokenService({ data });
 
+      console.log(data, "tokenn oken");
+
       successResponseData({
         res,
         message: "Login Successfully.",
@@ -101,14 +106,25 @@ export let loginUser = tryCatchWrapper(async (req, res) => {
   }
 });
 
-
 export let logoutUser = tryCatchWrapper(async (req, res) => {
-  await tokenService.deleteSpecificTokenService({ id: req.token.tokenId })
+  await tokenService.deleteSpecificTokenService({ id: req.token.tokenId });
 
   successResponseData({
     res,
     message: "Logout Successfully.",
-    statusCode: HttpStatus.OK
-  })
-  
-})
+    statusCode: HttpStatus.OK,
+  });
+});
+
+export const authMyProfile = tryCatchWrapper(async (req, res) => {
+  let id = req.info.userId;
+  let data = await authService.detailSpecificAuthUserService({ id });
+  console.log(data);
+  successResponseData({
+    res,
+    message: "Profile read sucessfully.",
+    statusCode: HttpStatus.OK,
+    data,
+  });
+  console.log(data, "user user suer");
+});

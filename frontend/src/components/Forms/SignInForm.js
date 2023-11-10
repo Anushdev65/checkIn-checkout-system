@@ -16,6 +16,45 @@ const SigninForm = ({
   return (
     <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
       <Grid container spacing={2}>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            error={Boolean(touched.firstName && errors.firstName)}
+            autoComplete="off"
+            name="firstName"
+            required
+            fullWidth
+            id="firstName"
+            label="First Name"
+            onChange={handleChange}
+            onBlur={handleBlur}
+            value={values.firstName}
+          />
+          <MUIError
+            touch={touched.firstName}
+            error={errors.firstName}
+            value={false}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            error={Boolean(touched.lastName && errors.lastName)}
+            required
+            fullWidth
+            id="lastName"
+            label="Last Name"
+            name="lastName"
+            autoComplete="Last name"
+            value={values.lastName}
+            onChange={handleChange}
+            onBlur={handleBlur}
+          />
+          <MUIError
+            touch={touched.lastName}
+            error={errors.lastName}
+            value={false}
+          />
+        </Grid>
+
         <Grid item xs={12}>
           <TextField
             error={Boolean(touched.email && errors.email)}
@@ -48,6 +87,25 @@ const SigninForm = ({
           <MUIError
             touch={touched.password}
             error={errors.password}
+            value={false}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            error={Boolean(touched.phoneNumber && errors.phoneNumber)}
+            required
+            fullWidth
+            id="phoneNumber"
+            label="Phone Number"
+            name="phoneNumber"
+            autoComplete="off"
+            value={values.phoneNumber}
+            onChange={handleChange}
+            onBlur={handleBlur}
+          />
+          <MUIError
+            touch={touched.phoneNumber}
+            error={errors.phoneNumber}
             value={false}
           />
         </Grid>

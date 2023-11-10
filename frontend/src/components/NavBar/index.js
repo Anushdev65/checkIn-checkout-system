@@ -34,7 +34,7 @@ const navData = [
   {
     name: "Home",
     icon: <FoodBankOutlinedIcon />,
-    link: "/home"
+    link: "/home",
   },
   {
     name: "Track Logs",
@@ -44,7 +44,7 @@ const navData = [
   {
     name: "My Profile",
     icon: <AccountBoxIcon />,
-    // link: "/myprofile",
+    link: "/myprofile",
   },
   {
     name: "Update Password",

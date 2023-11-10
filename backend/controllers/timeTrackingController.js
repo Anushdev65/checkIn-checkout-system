@@ -105,7 +105,7 @@ export const checkIn = tryCatchWrapper(async (req, res) => {
   // console.log(workingTitle, plannedWorkingHours);
   // // Fetch the user's data, including the user ID
   // console.log("User ID:", user);
-  const userData = await authService.detailSpecificAuthUserService(user);
+  const userData = await authService.detailSpecificAuthUserService({ user });
 
   console.log(userData);
   if (!userData) {

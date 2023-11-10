@@ -36,6 +36,7 @@ import CheckInPop from "../PopupModal";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useQueryClient } from "react-query";
+import { useAddTrackingLogMutation } from "../../services/api/trackingLog";
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -297,6 +298,29 @@ export default function TimeTrackingTable() {
     }
   };
 
+  // Creating the log after user checks out
+
+  const [addLog] = useAddTrackingLogMutation();
+  const createLogEntry = async () => {
+    try {
+      const requestBody = {
+        user: userId,
+        timeTracker: checkInTimeData.data.checkInTime,
+        date: new Date(),
+      };
+      const response = await addLog(requestBody);
+
+      console.log(requestBody);
+      if (response.error) {
+        console.error("Error creating log entry", response.error);
+      } else {
+        console.log("Log entry created successfully:", response.data);
+      }
+    } catch (error) {
+      console.error("Error creating log entry", error);
+    }
+  };
+
   const handleCheckout = async () => {
     try {
       const requestBody = {
@@ -310,6 +334,7 @@ export default function TimeTrackingTable() {
         console.error("Error while checking out", response.error);
       } else {
         console.log("sucessfully checkedOut", response.data);
+        createLogEntry();
       }
       // CreateLogEntry(new Date());
     } catch (error) {

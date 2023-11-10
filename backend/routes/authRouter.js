@@ -19,4 +19,8 @@ authRouter
   .route("/logout")
   .patch(validation(logoutSchema), isValidToken, authController.logoutUser);
 
+ authRouter 
+ .route("/my-profile").get(isValidToken,
+  authController.authMyProfile
+  ) 
 export default authRouter;

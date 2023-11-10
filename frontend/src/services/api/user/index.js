@@ -37,6 +37,16 @@ export const userApi = createApi({
       },
     }),
 
+    getMyProfile: builder.query({
+      query: () => {
+        return {
+          url: `auth/my-profile`,
+          method: "GET",
+        };
+      },
+      providesTags: ["getMyProfile"],
+    }),
+
     logoutUser: builder.mutation({
       query: () => {
         return {
@@ -51,4 +61,5 @@ export const {
   useCreateUserMutation,
   useLoginUserMutation,
   useLogoutUserMutation,
+  useGetMyProfileQuery,
 } = userApi;

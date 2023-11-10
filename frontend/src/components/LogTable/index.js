@@ -199,34 +199,34 @@ export default function LogTable({ checkInTimeData, selectedDate }) {
   //   useSaveCheckInTimeQuery(userId);
 
   // A function to create a log entry with the date as the request payLoad
-  const createLogEntry = async (date) => {
-    try {
-      const requestBody = {
-        user: userId,
-        timeTracker: checkInTimeData.data.checkInTime,
-        date: date,
-      };
-      const response = await addDate(requestBody);
-      console.log(requestBody);
+  // const createLogEntry = async (date) => {
+  //   try {
+  //     const requestBody = {
+  //       user: userId,
+  //       timeTracker: checkInTimeData.data.checkInTime,
+  //       date: date,
+  //     };
+  //     const response = await addDate(requestBody);
+  //     console.log(requestBody);
 
-      if (response.error) {
-        console.error("Error creating log entry", response.error);
-      } else {
-        console.log("Log entry created successfully:", response.data);
-      }
-    } catch (error) {
-      console.error("Error creating log entry", error);
-    }
-  };
+  //     if (response.error) {
+  //       console.error("Error creating log entry", response.error);
+  //     } else {
+  //       console.log("Log entry created successfully:", response.data);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error creating log entry", error);
+  //   }
+  // };
 
   const checkInDate = checkInTimeData?.data?.checkInTime?.checkIn;
   const formattedDate = dayjs(checkInDate).format("YYYY-MM-DD");
 
-  useEffect(() => {
-    if (checkInDate) {
-      createLogEntry(formattedDate);
-    }
-  }, [checkInDate, formattedDate]);
+  // useEffect(() => {
+  //   if (checkInDate) {
+  //     createLogEntry(formattedDate);
+  //   }
+  // }, [checkInDate, formattedDate]);
 
   useEffect(() => {
     if (logData) {

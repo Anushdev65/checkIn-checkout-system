@@ -2,15 +2,31 @@ import { HttpStatus } from "../constant/constant.js";
 import successResponseData from "../helper/successResponseData.js";
 import tryCatchWrapper from "../middleware/tryCatchWrapper.js";
 import { authService, trackingLogService } from "../services/index.js";
-import { TimeTracker, TrackingLog } from "../schemasModel/model.js";
+import { Auth, TimeTracker, TrackingLog } from "../schemasModel/model.js";
 
 // Controller function to add a new tracking Log entry
 export const addTrackingLog = tryCatchWrapper(async (req, res) => {
   // Extract request body
   let body = { ...req.body };
 
+  let id = req.info.userId;
+
+  let timeTrackerData = await TimeTracker.findOne();
+
+  let userData = await authService.detailSpecificAuthUserService({
+    id
+  });
+  console.log(userData, "bobo");
+  body.date = new Date();
+
+  const trackingLogEntry = {
+    user: userData,
+    timeTracker: timeTrackerData,
+    date: body.date,
+  };
+
   let data = await trackingLogService.addTrackingLogService({
-    body: body,
+    body: trackingLogEntry,
   });
 
   successResponseData({
@@ -19,6 +35,7 @@ export const addTrackingLog = tryCatchWrapper(async (req, res) => {
     statusCode: HttpStatus.CREATED,
     data,
   });
+  console.log(data, "blu blu");
 });
 
 // Controller function to edit an existing tracking Log entry
@@ -62,13 +79,33 @@ export const detailSpecificTrackingLog = tryCatchWrapper(async (req, res) => {
 // Controller function to retrieve all tracking Log entries
 export const detailAllTrackingLog = tryCatchWrapper(async (req, res, next) => {
   // Initialize a 'find' object for querying all tracking Log entries
-  let find = {};
+
+  const { date } = req.query;
+
+  if (date) {
+    const formattedDate = new Date(date);
+
+    req.find = { date: formattedDate };
+  } else {
+    req.find = {};
+  }
 
   // Pass 'find' and the service function to the next middleware
-  req.find = find;
   req.service = trackingLogService.detailAllTrackingLogService;
 
   next();
+
+  // const { createdAt } = req.query;
+
+  // if (createdAt) {
+  //   const createdTimestamp = new Date(parseInt(createdAt, 10));
+  //   req.find = { createdAt: createdTimestamp };
+  // } else {
+  //   req.find = {};
+  // }
+
+  // req.service = trackingLogService.detailAllTrackingLogService;
+  // next();
 });
 
 // Controller function to delete a specific tracking Log entry by ID

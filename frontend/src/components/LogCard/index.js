@@ -15,49 +15,30 @@ import {
 } from "../../services/api/trackingLog";
 import { getUserInfo } from "../../localStorage/localStorage";
 
-export default function LogCard({ selectedDate }) {
-  const { user } = getUserInfo();
-  const userId = user?._id;
+export default function LogCard({ selectedDate, logs }) {
+  // const { user } = getUserInfo();
+  // const userId = user?._id;
   const formattedDate = dayjs(selectedDate).format("YYYY-MM-DD");
 
-  const { data: checkInTimeData, isLoading: checkInLoading } =
-    useSaveCheckInTimeQuery(userId);
-  console.log(checkInTimeData);
+  // const { data: checkInTimeData, isLoading: checkInLoading } =
+  //   useSaveCheckInTimeQuery(userId);
+  // console.log(checkInTimeData);
 
-  const [addLog, { data, isSucess, error, isLoading }] =
-    useAddTrackingLogMutation();
+  const { data: log, isLoading: logLoading } = useDetailAllTrackingLogQuery({
+    date: formattedDate,
+  });
+  console.log(log);
+  console.log(formattedDate);
 
-  // const { data: logs, isLoading: logsLoading } = useDetailAllTrackingLogQuery({
-  //   date: formattedDate,
-  // });
-  // console.log(logs);
+  const logForSelectedDate = log.data.results.find((entry) => {
+    return dayjs(entry.date).format("YYYY-MM-DD") === selectedDate;
+  });
+  console.log(logForSelectedDate);
 
-  const createLogEntry = async () => {
-    try {
-      const requestBody = {
-        user: user,
-        timeTracker: checkInTimeData.data.checkInTime,
-        date: formattedDate,
-      };
-      const response = await addLog(requestBody);
+  if (!logForSelectedDate) {
+    return <p>No log entries available for this date.</p>;
+  }
 
-      console.log(requestBody);
-      if (response.error) {
-        console.error("Error creating log entry", response.error);
-      } else {
-        console.log("Log entry created successfully:", response.data);
-        
-      }
-    } catch (error) {
-      console.error("Error creating log entry", error);
-    }
-  };
-  useEffect(() => {
-    if (checkInTimeData) {
-      // Create a log entry using the check-in data
-      createLogEntry();
-    }
-  }, [ checkInTimeData]);
   return (
     <Box
       sx={{
@@ -97,108 +78,113 @@ export default function LogCard({ selectedDate }) {
           },
         }}
       />
-      <Card
-        orientation="horizontal"
-        sx={{
-          width: "100%",
-          flexWrap: "wrap",
-          [`& > *`]: {
-            "--stack-point": "500px",
-            minWidth:
-              "clamp(0px, (calc(var(--stack-point) - 2 * var(--Card-padding) - 2 * var(--variant-borderWidth, 0px)) + 1px - 100%) * 999, 100%)",
-          },
-          // make the card resizable for demo
-          overflow: "auto",
-          resize: "horizontal",
-        }}
-      >
-        {/* <AspectRatio flex ratio="1" maxHeight={182} sx={{ minWidth: 182 }}>
+      {logForSelectedDate ? (
+        <Card
+          key={logForSelectedDate._id}
+          orientation="horizontal"
+          sx={{
+            width: "100%",
+            flexWrap: "wrap",
+            [`& > *`]: {
+              "--stack-point": "500px",
+              minWidth:
+                "clamp(0px, (calc(var(--stack-point) - 2 * var(--Card-padding) - 2 * var(--variant-borderWidth, 0px)) + 1px - 100%) * 999, 100%)",
+            },
+            // make the card resizable for demo
+            overflow: "auto",
+            resize: "horizontal",
+          }}
+        >
+          {/* <AspectRatio flex ratio="1" maxHeight={182} sx={{ minWidth: 182 }}>
           
         </AspectRatio> */}
-        <CardContent>
-          <Typography fontSize="xl" fontWeight="lg">
-            Title :{checkInTimeData?.data?.checkInTime?.title}
-          </Typography>
-          <Typography level="body-sm" fontWeight="lg" textColor="text.tertiary">
-            {/* {dayjs(checkInTimeData?.data?.checkInTime?.checkIn).format(
+          <CardContent>
+            <Typography fontSize="xl" fontWeight="lg">
+              Title :{logForSelectedDate?.timeTracker.title}
+            </Typography>
+            <Typography
+              level="body-sm"
+              fontWeight="lg"
+              textColor="text.tertiary"
+            >
+              {/* {dayjs(checkInTimeData?.data?.checkInTime?.checkIn).format(
               "YYYY-MM-DD"
             )} */}
-          </Typography>
-          <Sheet
-            sx={{
-              bgcolor: "background.level1",
-              borderRadius: "sm",
-              p: 1.5,
-              my: 1.5,
-              display: "flex",
-              gap: 5,
-              //   '& > div': { flex: 1 },
-            }}
-          >
-            <div>
-              <Typography level="body-xs" fontWeight="lg">
-                check-In Time
-              </Typography>
-              <Typography fontWeight="lg">
-                {dayjs(checkInTimeData?.data?.checkInTime?.checkIn).format(
-                  "HH:mm:ss A"
-                )}
-              </Typography>
-            </div>
-            <div>
-              <Typography level="body-xs" fontWeight="lg">
-                Check-Out Time
-              </Typography>
-              <Typography fontWeight="lg">
-                {dayjs(checkInTimeData?.data?.checkInTime?.checkOut).format(
-                  "HH:mm:ss A"
-                )}
-              </Typography>
-            </div>
-            <div>
-              <Typography level="body-xs" fontWeight="lg">
-                Total Pause Count
-              </Typography>
-              <Typography fontWeight="lg">
-                {checkInTimeData?.data?.checkInTime?.pausedCount}
-              </Typography>
-            </div>
-            <div>
-              <Typography level="body-xs" fontWeight="lg">
-                Reasons for Pause
-              </Typography>
-              <Typography fontWeight="lg">
-                {checkInTimeData?.data?.checkInTime?.pauseTimers?.map(
-                  (item, index) => (
-                    <div key={index} className="fetched-text">
-                      {item?.reason}
-                    </div>
-                  )
-                )}
-              </Typography>
-            </div>
-            <div>
-              <Typography level="body-xs" fontWeight="lg">
-                Total working duration
-              </Typography>
-              <Typography fontWeight="lg">1</Typography>
-            </div>
-            <div>
-              <Typography level="body-xs" fontWeight="lg">
-                Added Notes
-              </Typography>
-              <Typography fontWeight="lg">
-                {checkInTimeData?.data?.checkInTime?.notes.map(
-                  (item, index) => (
+            </Typography>
+            <Sheet
+              sx={{
+                bgcolor: "background.level1",
+                borderRadius: "sm",
+                p: 1.5,
+                my: 1.5,
+                display: "flex",
+                gap: 5,
+                //   '& > div': { flex: 1 },
+              }}
+            >
+              <div>
+                <Typography level="body-xs" fontWeight="lg">
+                  check-In Time
+                </Typography>
+                <Typography fontWeight="lg">
+                  {dayjs(logForSelectedDate.timeTracker.checkIn).format(
+                    "HH:mm:ss A"
+                  )}
+                </Typography>
+              </div>
+              <div>
+                <Typography level="body-xs" fontWeight="lg">
+                  Check-Out Time
+                </Typography>
+                <Typography fontWeight="lg">
+                  {dayjs(logForSelectedDate.timeTracker.checkOut).format(
+                    "HH:mm:ss A"
+                  )}
+                </Typography>
+              </div>
+
+              <div>
+                <Typography level="body-xs" fontWeight="lg">
+                  Total Pause Count
+                </Typography>
+                <Typography fontWeight="lg">
+                  {logForSelectedDate.timeTracker.pausedCount}
+                </Typography>
+              </div>
+              <div>
+                <Typography level="body-xs" fontWeight="lg">
+                  Reasons for Pause
+                </Typography>
+                <Typography fontWeight="lg">
+                  {logForSelectedDate.timeTracker.pauseTimers?.map(
+                    (item, index) => (
+                      <div key={index} className="fetched-text">
+                        {item?.reason}
+                      </div>
+                    )
+                  )}
+                </Typography>
+              </div>
+              <div>
+                <Typography level="body-xs" fontWeight="lg">
+                  Total working duration
+                </Typography>
+                <Typography fontWeight="lg"> {logForSelectedDate.timeTracker.duration}</Typography>
+              </div>
+              <div>
+                <Typography level="body-xs" fontWeight="lg">
+                  Added Notes
+                </Typography>
+                <Typography fontWeight="lg">
+                  {logForSelectedDate.timeTracker.notes.map((item, index) => (
                     <div key={index} className="Notes-cell">
                       {item}
                     </div>
-                  )
-                )}
-              </Typography>
-            </div>
-          </Sheet>
-          {/* <Box sx={{ display: "flex", gap: 1.5, "& > button": { flex: 1 } }}>
+                  ))}
+                </Typography>
+              </div>
+            </Sheet>
+            {/* <Box sx={{ display: "flex", gap: 1.5, "& > button": { flex: 1 } }}>
             <Button variant="outlined" color="neutral">
               Chat
             </Button>
@@ -206,8 +192,11 @@ export default function LogCard({ selectedDate }) {
               Follow
             </Button>
           </Box> */}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      ) : (
+        <p> No log entries available for this date.</p>
+      )}
     </Box>
   );
 }

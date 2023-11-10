@@ -10,10 +10,14 @@ import SigninForm from "../components/Forms/SignInForm";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import "../styles/registeruser.css";
+import SignInLogo from "../components/Logo/SignInLogo";
 
 const initialValues = {
+  firstName: "",
+  lastName: "",
   email: "",
   password: "",
+  phoneNumber: "",
 };
 
 export default function SignUp() {
@@ -31,8 +35,11 @@ export default function SignUp() {
     initialValues,
     onSubmit: (values) => {
       const body = {
+        firstName: values.firstName,
+        lastName: values.lastName,
         email: values.email,
         password: values.password,
+        phoneNumber: values.phoneNumber,
       };
       registerUser(body);
     },
@@ -63,9 +70,10 @@ export default function SignUp() {
               marginBottom: 8,
             }}
           >
-            <Typography component="h1" variant="h5">
+            {/* <Typography component="h1" variant="h5">
               Create your account
-            </Typography>
+            </Typography> */}
+            <SignInLogo />
             <SigninForm
               handleBlur={handleBlur}
               touched={touched}

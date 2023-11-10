@@ -34,6 +34,7 @@ export const trackingLogApi = createApi({
         return {
           url: `/tracking/log`,
           method: "GET",
+         
         };
       },
       providesTags: ["detailTrackingLog"],
