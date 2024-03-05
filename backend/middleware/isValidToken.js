@@ -48,7 +48,7 @@ export let isValidToken = tryCatchWrapper(async (req, res, next) => {
     }
   } else {
     // If the header format is invalid or the token is missing, respond with an unauthorized error
-    let error = new Error("Token is not valid");
+    let error = new Error("Token is not valid, OH OH");
     error.statusCode = HttpStatus.UNAUTHORIZED;
     throw error;
   }

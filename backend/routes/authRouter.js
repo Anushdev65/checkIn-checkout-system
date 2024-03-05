@@ -19,8 +19,14 @@ authRouter
   .route("/logout")
   .patch(validation(logoutSchema), isValidToken, authController.logoutUser);
 
- authRouter 
- .route("/my-profile").get(isValidToken,
-  authController.authMyProfile
-  ) 
+authRouter.route("/my-profile").get(isValidToken, authController.authMyProfile);
+
+authRouter
+  .route("/update/password")
+  .patch(isValidToken, authController.updateAuthPassword);
+
+authRouter
+  .route("/update/profile")
+  .patch(isValidToken, authController.updateAuthUser("myProfile"));
+
 export default authRouter;

@@ -68,15 +68,7 @@ const MyProfile = () => {
           </Container>
 
           <Typography className="myprofile" component="h1" variant="h5" mt={1}>
-            {myProfileData?.data?.firstName && myProfileData?.data?.lastName
-              ? `${
-                  myProfileData.firstName.charAt(0).toUpperCase() +
-                  myProfileData.firstName.slice(1)
-                } ${
-                  myProfileData.lastName.charAt(0).toUpperCase() +
-                  myProfileData.lastName.slice(1)
-                }`
-              : "My profile"}
+            {"My profile"}
           </Typography>
 
           <Button
@@ -117,6 +109,8 @@ const MyProfile = () => {
                   }}
                 >
                   <PersonIcon sx={{ position: "relative", bottom: "2px" }} />
+                  {myProfileData?.data?.firstName} {""}
+                  {myProfileData?.data?.lastName}
                 </Typography>
               </Grid>
 
@@ -129,6 +123,7 @@ const MyProfile = () => {
                   }}
                 >
                   <EmailIcon sx={{ position: "relative", bottom: "2px" }} />
+                  {myProfileData?.data?.email}
                 </Typography>
               </Grid>
               <Grid item xs={12}>
@@ -138,7 +133,10 @@ const MyProfile = () => {
                     gap: "10px",
                     flexDirection: "row",
                   }}
-                ></Typography>
+                >
+                  <PhoneIcon sx={{ position: "relative", bottom: "2px" }} />
+                  {myProfileData?.data?.phoneNumber}
+                </Typography>
               </Grid>
               <Grid item xs={12}>
                 <Typography

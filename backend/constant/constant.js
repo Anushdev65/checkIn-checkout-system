@@ -1,3 +1,8 @@
+export const roleEnum = {
+  ADMIN: "admin",
+  USER: "user",
+};
+
 export const HttpStatus = {
   CONTINUE: 100,
   SWITCHING_PROTOCOLS: 101,

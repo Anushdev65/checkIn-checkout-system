@@ -49,7 +49,7 @@ const navData = [
   {
     name: "Update Password",
     icon: <EnhancedEncryptionOutlinedIcon />,
-    // link: "/auth/update-password",
+    link: "/update/password",
   },
 ];
 
@@ -181,7 +181,7 @@ export default function MUINavbar() {
     removeLevelInfo();
     setTimeout(() => {
       window.location.href = "/login";
-    });
+    }, 3000);
   };
 
   const handleNavLinkClick = (name) => {

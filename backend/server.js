@@ -6,16 +6,17 @@ import { config } from "dotenv";
 import cors from "cors";
 import apiRouter from "./routes/index.js";
 // import { apiVersion, port, staticFolder }
-
+import bodyParser from "body-parser";
 let expressApp = express();
 config();
 
 expressApp.use(cors());
 expressApp.use(json());
 
-expressApp.use(`${apiVersion}`, apiRouter)
+expressApp.use(`${apiVersion}`, apiRouter);
 
 expressApp.use(errorHandler);
+expressApp.use(bodyParser.json());
 
 connectDb();
 

@@ -38,7 +38,7 @@ export const addAuthUser = tryCatchWrapper(async (req, res) => {
     });
 
     let infoObj = { userId: data._id };
-    let token = await generateToken(infoObj, secretKey);
+    let token = await generateToken(infoObj, secretKey, expiryIn);
     console.log(user);
     console.log(token);
 
@@ -46,6 +46,7 @@ export const addAuthUser = tryCatchWrapper(async (req, res) => {
       token: token,
       userId: data._id,
       type: tokenTypes.ACCESS,
+      expiration: getTokenExpiryTime(token).toLocaleString(),
     };
 
     await tokenService.createTokenService({ data: tokenData });
@@ -128,3 +129,92 @@ export const authMyProfile = tryCatchWrapper(async (req, res) => {
   });
   console.log(data, "user user suer");
 });
+
+export let updateAuthPassword = tryCatchWrapper(async (req, res) => {
+  let id = req.info.userId;
+  let oldPassword = req.body.oldPassword;
+  let password = req.body.password;
+
+  let user = await authService.detailSpecificAuthUserService({ id });
+
+  let isOldPasswordMatches = await comparePassword(oldPassword, user.password);
+
+  if (!isOldPasswordMatches) {
+    throwError({ message: "Password does not matches.", statusCode: 401 });
+  }
+
+  let isPreviousCurrentPasswordSame = await comparePassword(
+    password,
+    user.password
+  );
+
+  if (isPreviousCurrentPasswordSame) {
+    throwError({
+      message: "Previous and current password are same.",
+      statusCode: 401,
+    });
+  }
+
+  let body = {
+    password: await hashPassword(password),
+  };
+
+  let data = await authService.editSpecificAuthUserService({ id, body });
+  delete data._doc.password;
+  await tokenService.deleteAllTokenOfAUser({ userId: id });
+
+  successResponseData({
+    res,
+    message: "User password updated successfully.",
+    statusCode: HttpStatus.CREATED,
+    data,
+  });
+});
+
+export let readSpecificAuthUser = tryCatchWrapper(async (req, res) => {
+  let id = req.params.id;
+  let data = await authService.detailSpecificAuthUserService({ id });
+  if (data) {
+    delete data._doc.password;
+    successResponseData({
+      res,
+      message: "Read user successfully.",
+      statusCode: HttpStatus.OK,
+      data,
+    });
+  } else {
+    throwError({
+      message: "Could'nt found user.",
+      statusCode: HttpStatus.NOT_FOUND,
+    });
+  }
+});
+
+export let updateAuthUser = (profile) =>
+  tryCatchWrapper(async (req, res) => {
+    let body = { ...req.body };
+    delete body.password;
+    delete body.email;
+
+    //if user is other than admin lets not allow him to change the role
+    // if (!req.info.roles.includes("admin")) {
+    //   delete body.roles;
+    // }
+
+    let id = profile === "myProfile" ? req.info.userId : req.params.id;
+    let user = await authService.detailSpecificAuthUserService({ id });
+    if (user) {
+      let data = await authService.editSpecificAuthUserService({ id, body });
+      successResponseData({
+        res,
+        message: "User updated successfully.",
+        statusCode: HttpStatus.CREATED,
+        data,
+      });
+    } else {
+      throwError({
+        message: "Could not found user.",
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
+  });

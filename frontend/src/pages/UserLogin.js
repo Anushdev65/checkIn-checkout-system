@@ -19,6 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import { setLevelInfo, setUserInfo } from "../localStorage/localStorage";
 import { useLoginUserMutation } from "../services/api/user";
+import { useEffect } from "react";
 
 // Initial form values
 const initialValues = {
@@ -51,7 +52,7 @@ export default function UserLogin() {
     },
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     console.log("data:", data);
     console.log("error:", error);
     console.log("isSuccess:", isSuccess);

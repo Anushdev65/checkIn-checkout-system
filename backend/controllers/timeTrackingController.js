@@ -98,16 +98,16 @@ export const deleteSpecificTimeTracker = tryCatchWrapper(async (req, res) => {
 
 export const checkIn = tryCatchWrapper(async (req, res) => {
   // Get the user ID from the request.
-  let user = req.body.id;
+  let user = req.info.userId;
   let workingTitle = req.body.title;
 
   let plannedWorkingHours = req.body.plannedWorkingHours;
   // console.log(workingTitle, plannedWorkingHours);
   // // Fetch the user's data, including the user ID
   // console.log("User ID:", user);
-  const userData = await authService.detailSpecificAuthUserService({ user });
+  let userData = await authService.detailSpecificAuthUserService({ id: user });
 
-  console.log(userData);
+  console.log(userData, "blabla blublu");
   if (!userData) {
     return res.status(404).json({ message: "User not found" });
   }
@@ -115,7 +115,7 @@ export const checkIn = tryCatchWrapper(async (req, res) => {
   // Check if the user has already checked in on the current day
   let lastTimeTrackingEntry =
     await timeTrackerService.getLastTimeTrackingByDate(
-      user,
+      userData,
       dayjs().format("YYYY-MM-DD")
     );
 
@@ -182,8 +182,11 @@ export const checkIn = tryCatchWrapper(async (req, res) => {
 });
 
 export const checkOut = tryCatchWrapper(async (req, res) => {
-  let user = req.body.id;
+  let user = req.info.userId;
 
+  let userData = await authService.detailSpecificAuthUserService({ id: user });
+
+  console.log(userData, "log log log");
   // recent Time Tracking entry for the user
   let lastTimeTrackingEntry =
     await timeTrackerService.getLastTimeTrackingByDate(

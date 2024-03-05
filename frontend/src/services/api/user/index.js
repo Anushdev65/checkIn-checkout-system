@@ -47,11 +47,32 @@ export const userApi = createApi({
       providesTags: ["getMyProfile"],
     }),
 
+    updateProfile: builder.mutation({
+      query: (body) => {
+        return {
+          url: `/auth/update/profile`,
+          method: "PATCH",
+          body: body,
+        };
+      },
+      invalidatesTags: ["getMyProfile"],
+    }),
+
     logoutUser: builder.mutation({
       query: () => {
         return {
           url: `/auth/logout`,
           method: "PATCH",
+        };
+      },
+    }),
+
+    updatePassword: builder.mutation({
+      query: (body) => {
+        return {
+          url: `/auth/update/password`,
+          method: "PATCH",
+          body: body,
         };
       },
     }),
@@ -62,4 +83,5 @@ export const {
   useLoginUserMutation,
   useLogoutUserMutation,
   useGetMyProfileQuery,
+  useUpdatePasswordMutation,
 } = userApi;

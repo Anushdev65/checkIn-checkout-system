@@ -7,6 +7,7 @@ import TrackingLog from "./pages/TrackingLog";
 import "./App.css";
 import LogDetailPage from "./pages/logDetail";
 import MyProfile from "./components/MyProfile";
+import UpdatePasswordForm from "./components/UpdatePassword";
 // import { QueryClient, QueryClientProvider } from "react-query";
 
 // const queryClient = new QueryClient();
@@ -19,6 +20,7 @@ function App() {
         <Route path="/home/tracking/log" element={<TrackingLog />} />
         <Route path="log/:date" element={<LogDetailPage />} />
         <Route path="/myprofile" element={<MyProfile />} />
+        <Route path="/update/password" element={<UpdatePasswordForm />} />
       </Route>
       {/* Register route */}
       <Route path="/register" element={<SignUp />} />

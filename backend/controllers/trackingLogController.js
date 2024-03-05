@@ -7,20 +7,28 @@ import { Auth, TimeTracker, TrackingLog } from "../schemasModel/model.js";
 // Controller function to add a new tracking Log entry
 export const addTrackingLog = tryCatchWrapper(async (req, res) => {
   // Extract request body
-  let body = { ...req.body };
+  let body = req.body;
+  console.log(body, "bodybody");
+  let user = req.info.userId;
 
-  let id = req.info.userId;
+  let timeTrackerData = await TimeTracker.findById(body.timeTracker);
 
-  let timeTrackerData = await TimeTracker.findOne();
+  // if (!timeTrackerData) {
+  //   return errorResponseData({
+  //     res,
+  //     message: "TimeTracker not found",
+  //     statusCode: HttpStatus.NOT_FOUND,
+  //   });
+  // }
 
   let userData = await authService.detailSpecificAuthUserService({
-    id
+    id: user,
   });
   console.log(userData, "bobo");
   body.date = new Date();
 
   const trackingLogEntry = {
-    user: userData,
+    user: user,
     timeTracker: timeTrackerData,
     date: body.date,
   };
@@ -87,25 +95,13 @@ export const detailAllTrackingLog = tryCatchWrapper(async (req, res, next) => {
 
     req.find = { date: formattedDate };
   } else {
-    req.find = {};
+    req.find = {}; 
   }
 
   // Pass 'find' and the service function to the next middleware
   req.service = trackingLogService.detailAllTrackingLogService;
 
   next();
-
-  // const { createdAt } = req.query;
-
-  // if (createdAt) {
-  //   const createdTimestamp = new Date(parseInt(createdAt, 10));
-  //   req.find = { createdAt: createdTimestamp };
-  // } else {
-  //   req.find = {};
-  // }
-
-  // req.service = trackingLogService.detailAllTrackingLogService;
-  // next();
 });
 
 // Controller function to delete a specific tracking Log entry by ID

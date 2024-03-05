@@ -11,6 +11,7 @@ import LogCard from "../LogCard";
 import "../../styles/calendar.css";
 import { useDetailAllTrackingLogQuery } from "../../services/api/trackingLog";
 import dayjs from "dayjs";
+import { getUserInfo } from "../../localStorage/localStorage";
 
 // function Calendar() {
 //   const [selectedDate, setSelectedDate] = useState(null);
@@ -89,10 +90,14 @@ import dayjs from "dayjs";
 // }
 
 function Calendar() {
+  const { user } = getUserInfo();
+  const userId = user?._id;
+
   const [selectedDate, setSelectedDate] = useState(null);
   const navigate = useNavigate();
   const { data: log, isLoading: logsLoading } = useDetailAllTrackingLogQuery({
     date: selectedDate,
+    // id: userId,
   });
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { timeTrackingController } from "../controllers/index.js";
 import { sortFilterPagination } from "../middleware/sortSelectPage.js";
+import { isValidToken } from "../middleware/isValidToken.js";
 export const timeTrackerRouter = Router();
 
 timeTrackerRouter
@@ -14,9 +15,13 @@ timeTrackerRouter
   .get(timeTrackingController.detailSpecificTimeTracker)
   .delete(timeTrackingController.deleteSpecificTimeTracker);
 
-timeTrackerRouter.route("/checkin").post(timeTrackingController.checkIn);
+timeTrackerRouter
+  .route("/checkin")
+  .post(isValidToken, timeTrackingController.checkIn);
 
-timeTrackerRouter.route("/checkout").post(timeTrackingController.checkOut);
+timeTrackerRouter
+  .route("/checkout")
+  .post(isValidToken, timeTrackingController.checkOut);
 timeTrackerRouter.route("/duration").post(timeTrackingController.duration);
 timeTrackerRouter
   .route("/resume/timer")

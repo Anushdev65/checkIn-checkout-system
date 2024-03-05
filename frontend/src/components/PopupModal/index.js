@@ -120,7 +120,7 @@ export default function CheckInPop({ open, handleClose }) {
         title: workTitle,
         plannedWorkingHours: parseFloat(plannedWorkingHours),
       };
-
+      console.log("Request Body:", requestBody);
       const response = await userCheckIn({ body: requestBody });
 
       if (response.error) {

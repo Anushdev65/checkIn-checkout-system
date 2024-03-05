@@ -6,11 +6,11 @@ export const trackingLogApi = createApi({
   reducerPath: "trackingLogApi",
   baseQuery: fetchBaseQuery({
     baseUrl: baseUrl,
-    prepareHeader: (headers) => {
+    prepareHeaders: (headers) => {
       const levelInfo = getLevelInfo();
       const token = levelInfo && levelInfo.token ? levelInfo.token : "";
       if (token) {
-        headers.set(`Breaker ${token}`);
+        headers.set("authorization", `Bearer ${token}`);
       }
       return headers;
     },
@@ -19,11 +19,11 @@ export const trackingLogApi = createApi({
 
   endpoints: (builder) => ({
     addTrackingLog: builder.mutation({
-      query: ({ body }) => {
+      query: (body) => {
         return {
           url: `/tracking/log`,
           method: "POST",
-          body: body,
+          body,
         };
       },
       invalidatesTags: ["detailTrackingLog"],
@@ -34,7 +34,6 @@ export const trackingLogApi = createApi({
         return {
           url: `/tracking/log`,
           method: "GET",
-         
         };
       },
       providesTags: ["detailTrackingLog"],

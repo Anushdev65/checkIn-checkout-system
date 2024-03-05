@@ -6,11 +6,11 @@ export const timeTrackerApi = createApi({
   reducerPath: "timeTrackerApi",
   baseQuery: fetchBaseQuery({
     baseUrl: baseUrl,
-    prepareHeader: (headers) => {
+    prepareHeaders: (headers) => {
       const levelInfo = getLevelInfo();
       const token = levelInfo && levelInfo.token ? levelInfo.token : "";
       if (token) {
-        headers.set(`Bearer ${token}`);
+        headers.set("authorization", `Bearer ${token}`);
       }
       return headers;
     },

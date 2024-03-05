@@ -303,14 +303,14 @@ export default function TimeTrackingTable() {
   const [addLog] = useAddTrackingLogMutation();
   const createLogEntry = async () => {
     try {
-      const requestBody = {
-        user: userId,
-        timeTracker: checkInTimeData.data.checkInTime,
+      const body = {
+        id: userId,
+        timeTracker: checkInTimeData.data.checkInTime._id,
         date: new Date(),
       };
-      const response = await addLog(requestBody);
+      const response = await addLog(body);
 
-      console.log(requestBody);
+      console.log(body);
       if (response.error) {
         console.error("Error creating log entry", response.error);
       } else {

@@ -16,8 +16,8 @@ import {
 import { getUserInfo } from "../../localStorage/localStorage";
 
 export default function LogCard({ selectedDate, logs }) {
-  // const { user } = getUserInfo();
-  // const userId = user?._id;
+  const { user } = getUserInfo();
+  const userId = user?._id;
   const formattedDate = dayjs(selectedDate).format("YYYY-MM-DD");
 
   // const { data: checkInTimeData, isLoading: checkInLoading } =
@@ -26,14 +26,20 @@ export default function LogCard({ selectedDate, logs }) {
 
   const { data: log, isLoading: logLoading } = useDetailAllTrackingLogQuery({
     date: formattedDate,
+    // id: userId,
   });
   console.log(log);
   console.log(formattedDate);
+
+  // const logForSelectedDate = log.data.results.find((entry) => {
+  //   return dayjs(entry.date).format("YYYY-MM-DD") === selectedDate;
+  // });
 
   const logForSelectedDate = log.data.results.find((entry) => {
     return dayjs(entry.date).format("YYYY-MM-DD") === selectedDate;
   });
   console.log(logForSelectedDate);
+
 
   if (!logForSelectedDate) {
     return <p>No log entries available for this date.</p>;
@@ -169,7 +175,10 @@ export default function LogCard({ selectedDate, logs }) {
                 <Typography level="body-xs" fontWeight="lg">
                   Total working duration
                 </Typography>
-                <Typography fontWeight="lg"> {logForSelectedDate.timeTracker.duration}</Typography>
+                <Typography fontWeight="lg">
+                  {" "}
+                  {logForSelectedDate.timeTracker.duration}
+                </Typography>
               </div>
               <div>
                 <Typography level="body-xs" fontWeight="lg">
